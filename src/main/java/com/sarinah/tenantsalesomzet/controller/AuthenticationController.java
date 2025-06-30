@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/authentication/v1")
+@RequestMapping(value = "/tenant-sales/authentication/v1")
 public class AuthenticationController {
     private final PostAuthCodeService postAuthCodeService;
     private final PostApplyTokenService postApplyTokenService;
