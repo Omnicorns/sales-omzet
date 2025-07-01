@@ -15,5 +15,8 @@ public interface ClientRepository extends JpaRepository<Client, String> {
     )
     Optional<AuthClientIdCheckView> getExistAuthClient(@Param("authClientId") String authClientId);
 
+    @Query(value = "SELECT * FROM CLIENT c WHERE AUTH_CLIENT_ID LIKE :authClientId", nativeQuery = true)
+    Optional<Client> findClientByAuthClientId(@Param("authClientId") String authClientId);
+
 
 }

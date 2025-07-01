@@ -3,7 +3,9 @@ package com.sarinah.tenantsalesomzet.repository;
 
 import com.sarinah.tenantsalesomzet.model.entity.Token;
 import com.sarinah.tenantsalesomzet.model.projection.PostGetTokenView;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
@@ -16,4 +18,9 @@ public interface TokenRepository extends JpaRepository<Token, String> {
             "FROM token " +
             "WHERE access_token = :accessToken AND is_deleted = false ", nativeQuery = true)
     Optional<PostGetTokenView> getTokenByAccessToken(String accessToken);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query(value = "update token SET is_used_token  = true, is_deleted = true where app_id  = :appId  and access_token = :accessToken", nativeQuery = true)
+    void updateIsUsedTokenAndIsDeleted(String appId, String accessToken);
 }
