@@ -25,6 +25,9 @@ public class Client {
     @Column(name = "auth_client_name", nullable = false)
     private String authClientName;
 
+    @Column(name = "auth_client_brand", nullable = false)
+    private String authClientBrand;
+
     @Column(name = "auth_client_id", nullable = false)
     private String authClientId;
 

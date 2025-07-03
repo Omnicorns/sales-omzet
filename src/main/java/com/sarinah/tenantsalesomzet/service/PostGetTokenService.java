@@ -16,7 +16,7 @@ import static com.sarinah.tenantsalesomzet.util.Constant.*;
 @Log4j2
 @RequiredArgsConstructor
 @Service
-public class PostGetTokenService {
+public class  PostGetTokenService {
     private final TokenRepository tokenRepository;
 
     public PostGetTokenResponse execute(PostGetTokenRequest request) {

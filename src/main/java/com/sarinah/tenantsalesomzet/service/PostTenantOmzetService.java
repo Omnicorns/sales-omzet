@@ -3,8 +3,9 @@ package com.sarinah.tenantsalesomzet.service;
 import com.sarinah.tenantsalesomzet.model.dto.ReceiptItem;
 import com.sarinah.tenantsalesomzet.model.entity.TenantOmzet;
 import com.sarinah.tenantsalesomzet.model.entity.TenantOmzetReceipt;
-import com.sarinah.tenantsalesomzet.repository.TenantOmzetReceiptRepository;
+import com.sarinah.tenantsalesomzet.model.projection.TokenClientProjection;
 import com.sarinah.tenantsalesomzet.repository.TenantOmzetRepository;
+import com.sarinah.tenantsalesomzet.repository.TokenRepository;
 import com.sarinah.tenantsalesomzet.request.PostTenantOmzetRequest;
 import com.sarinah.tenantsalesomzet.response.ValidationResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,63 +13,84 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
 
 @Log4j2
 @RequiredArgsConstructor
 @Service
 public class PostTenantOmzetService {
 
-    private final ValidateTenantOmzetService validateTenantOmzetService;
     private final TenantOmzetRepository omzetRepository;
-    private final TenantOmzetReceiptRepository tenantOmzetReceiptRepository;
+    private final TokenRepository tokenRepository;
 
 
     public ValidationResponse execute(PostTenantOmzetRequest input) {
-        if (validateTenantOmzetService.execute(input).getResult()) {
-            TenantOmzet tenantOmzet = new TenantOmzet();
-            tenantOmzet.setTenantId(UUID.randomUUID().toString());
-            tenantOmzet.setBrandName(input.getBrandName());
-            tenantOmzet.setLotLocation(input.getLotLocation());
-            tenantOmzet.setSalesDate((input.getSalesDate()));
-            tenantOmzet.setTenantName(input.getTenantName());
-            tenantOmzet.setOmzet(input.getOmzet());
-            tenantOmzet.setDay(input.getDay());
-            tenantOmzet.setCreatedBy("SYSTEM");
-            tenantOmzet.setUpdatedBy("SYSTEM");
-            tenantOmzet.setCreatedTime(new Timestamp(System.currentTimeMillis()));
-            tenantOmzet.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
-            List<TenantOmzetReceipt> finalReceipts = new ArrayList<>();
-            for (ReceiptItem r : input.getReceiptList()) {
-                TenantOmzetReceipt receipt = tenantOmzetReceiptRepository
-                        .findByReceiptNumber(r.getReceiptNumber())
-                        .map(existing -> {
-                            // Update yang lama
-                            existing.setAmount(r.getAmount());
-                            existing.setPaymentType(r.getPaymentType());
-                            existing.setTenantOmzet(tenantOmzet);
-                            return existing;
-                        })
-                        .orElseGet(() -> {
-                            // Buat baru
-                            TenantOmzetReceipt newReceipt = new TenantOmzetReceipt();
-                            newReceipt.setId(UUID.randomUUID().toString());
-                            newReceipt.setReceiptNumber(r.getReceiptNumber());
-                            newReceipt.setAmount(r.getAmount());
-                            newReceipt.setPaymentType(r.getPaymentType());
-                            newReceipt.setTenantOmzet(tenantOmzet);
-                            return newReceipt;
-                        });
+      var clientMap =  tokenRepository.findWithClientInfo(input.getAccessToken()) ;
+      TokenClientProjection client   = clientMap.get();
 
-                finalReceipts.add(receipt);
+        TenantOmzet tenantOmzet = omzetRepository
+                .findByTenantNameAndSalesDate(input.getTenantName(), input.getSalesDate())
+                .orElseGet(() -> {
+                    TenantOmzet t = new TenantOmzet();
+                    t.setTenantId(UUID.randomUUID().toString());
+                    t.setLotLocation(input.getLotLocation());
+                    t.setSalesDate(input.getSalesDate());
+                    t.setDay(input.getDay());
+                    t.setCreatedBy("SYSTEM");
+                    t.setCreatedTime(new Timestamp(System.currentTimeMillis()));
+                    t.setTenantName(client.getAuthClientName());
+                    t.setBrandName(client.getAuthClientBrand());
+                    // receipts sudah di‐inisialisasi di entitas
+                    return t;
+                });
+        tenantOmzet.setUpdatedBy("SYSTEM");
+        tenantOmzet.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
+
+        // 2. Pastikan koleksi receipts sudah ter‐load
+        List<TenantOmzetReceipt> existingReceipts = tenantOmzet.getReceipts();
+
+        // 3. Loop input, hanya append child baru jika belum ada nomor+amount yang sama
+        for (ReceiptItem r : input.getReceiptList()) {
+            boolean exists = existingReceipts.stream().anyMatch(rc ->
+                    rc.getReceiptNumber().equals(r.getReceiptNumber())
+                            && rc.getAmount().compareTo(r.getAmount()) == 0
+            );
+
+            if (!exists) {
+                TenantOmzetReceipt nr = new TenantOmzetReceipt();
+                nr.setId(UUID.randomUUID().toString());
+                nr.setReceiptNumber(r.getReceiptNumber());
+                nr.setAmount(r.getAmount());
+                nr.setPaymentType(r.getPaymentType());
+                nr.setReceiptDate(r.getReceiptDate());
+                nr.setTenantOmzet(tenantOmzet);
+                nr.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
+
+                existingReceipts.add(nr);
             }
-            tenantOmzet.setReceipts(finalReceipts);
-            this.omzetRepository.save(tenantOmzet);
-
         }
-        return ValidationResponse.builder().result(true).build();
+
+        // 4. Hitung total omzet unik (sum of distinct amounts per receiptNumber)
+        Map<String, Set<BigDecimal>> receiptAmountMap = new HashMap<>();
+        for (TenantOmzetReceipt rc : existingReceipts) {
+            receiptAmountMap
+                    .computeIfAbsent(rc.getReceiptNumber(), k -> new HashSet<>())
+                    .add(rc.getAmount());
+        }
+        BigDecimal totalOmzet = receiptAmountMap.values().stream()
+                .flatMap(Set::stream)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        tenantOmzet.setOmzet(totalOmzet);
+
+        // 5. Simpan header beserta semua child (only new ones get INSERTed)
+        omzetRepository.save(tenantOmzet);
+
+        return ValidationResponse.builder()
+                .result(true)
+                .build();
     }
+
 }

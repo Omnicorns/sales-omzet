@@ -18,4 +18,5 @@ public class PostGetTokenResponse {
     private String appId;
     private String accessToken;
     private Timestamp accessTokenExpiryTime;
+    private Boolean isUsedToken;
 }

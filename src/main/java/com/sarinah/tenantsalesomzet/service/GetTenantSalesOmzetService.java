@@ -39,6 +39,7 @@ public class GetTenantSalesOmzetService {
                         .receiptNumber(r.getReceiptNumber())
                         .amount(r.getAmount())
                         .paymentType(r.getPaymentType())
+                        .ReceiptDate(r.getReceiptDate())
                         .build()).collect(Collectors.toList()))
                 .build();
     }

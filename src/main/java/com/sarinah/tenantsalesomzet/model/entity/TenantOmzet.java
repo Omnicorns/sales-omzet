@@ -56,7 +56,9 @@ public class TenantOmzet {
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @OneToMany(mappedBy = "tenantOmzet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "tenantOmzet",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<TenantOmzetReceipt> receipts = new ArrayList<>();
 
 

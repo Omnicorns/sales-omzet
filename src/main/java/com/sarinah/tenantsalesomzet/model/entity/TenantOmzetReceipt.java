@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.Date;
 
 @Data
 @Builder
@@ -21,6 +23,14 @@ public class TenantOmzetReceipt {
     private String receiptNumber;
     private BigDecimal amount;
     private String paymentType;
+
+    @Column(name = "receipt_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date receiptDate;
+
+    @Column(name = "updated_time")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Timestamp updatedTime;
 
 
     @ManyToOne

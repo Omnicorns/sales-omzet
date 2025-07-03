@@ -2,6 +2,7 @@ package com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.configuration;
 
 import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.interceptor.TokenSecurityInterceptor;
 import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.processor.TokenSecurityValidator;
+import com.sarinah.tenantsalesomzet.repository.TokenRepository;
 import com.sarinah.tenantsalesomzet.service.PostGetTokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +21,9 @@ public class TokenSecurityConfiguration {
 
     @Bean
     public TokenSecurityValidator tokenSecurityValidator(
-            PostGetTokenService postGetTokenService) {
-        return new TokenSecurityValidator(postGetTokenService);
+            PostGetTokenService postGetTokenService,
+            TokenRepository tokenRepository
+    ) {
+        return new TokenSecurityValidator(postGetTokenService,tokenRepository);
     }
 }

@@ -33,7 +33,6 @@ public class OmzetController {
     }
 
     @PostMapping("/omzet-counts")
-    @TokenScope
     public ResponseEntity<Page<TenantOmzetResponse>> getPagedOmzet(
             @RequestBody TenantOmzetDateRangeRequest request) {
 
