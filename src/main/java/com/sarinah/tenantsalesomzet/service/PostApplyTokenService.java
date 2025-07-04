@@ -17,6 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +115,7 @@ public class PostApplyTokenService {
             authCode.setIsUsedToken(true);
             authCodeRepository.save(authCode);
 
-
+            tokenRequest.setUserId(authCode.getAppId());
             tokenRequest.setScopes(authCode.getScopes());
 
         }
@@ -136,18 +139,20 @@ public class PostApplyTokenService {
         refToken.setIsUsedToken(true);
         tokenRepository.save(refToken);
 
-
+        tokenRequest.setUserId(refToken.getRefreshToken());
         tokenRequest.setScopes(refToken.getScopes());
     }
 
     private Token generateToken(PostApplyTokenRequest request, String accessTokenExp, String refreshTokenExp, TokenRequest tokenRequest) {
-
+        var appId = tokenRequest.getUserId() ;
         Token token = Token.builder()
                 .tokenId(UUID.randomUUID().toString())
                 .scopes(tokenRequest.getScopes())
-                .appId(request.getAppId())
+                .appId(appId)
                 .authClientId(request.getAuthClientId())
-                .accessToken(UUID.randomUUID().toString())
+                .accessToken(String.valueOf(UUID.nameUUIDFromBytes(
+                       appId.getBytes(StandardCharsets.UTF_8)
+                )))
                 .accessTokenExpiryTime(new Timestamp(TimeUnit.SECONDS.toMillis(Long.parseLong(accessTokenExp)) + System.currentTimeMillis()))
                 .refreshToken(UUID.randomUUID().toString())
                 .refreshTokenExpiryTime(new Timestamp(TimeUnit.SECONDS.toMillis(Long.parseLong(refreshTokenExp)) + System.currentTimeMillis()))
@@ -191,4 +196,5 @@ public class PostApplyTokenService {
             }
         }
     }
-}
+
+   }
