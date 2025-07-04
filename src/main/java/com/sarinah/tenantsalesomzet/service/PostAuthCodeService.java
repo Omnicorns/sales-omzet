@@ -12,6 +12,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.sql.Timestamp;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +34,7 @@ public class PostAuthCodeService {
         try {
             var authCode = AuthCode.builder()
                     .authCodeId(String.valueOf(UUID.randomUUID()))
-                    .appId(postAuthCodeRequest.getAppId())
+                    .appId(generateAppId(postAuthCodeRequest.getTenantName()))
                     .scopes(String.join(",", postAuthCodeRequest.getScopes()))
                     .authExpiryTime(new Timestamp(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(Long.parseLong("300"))))
                     .authorizedCode(UUID.randomUUID().toString())
@@ -58,9 +61,20 @@ public class PostAuthCodeService {
     }
 
     private void validationAuthCode(PostAuthCodeRequest postAuthCodeRequest) {
-        if (StringUtils.isBlank(postAuthCodeRequest.getAppId()) || ArrayUtils.isEmpty(postAuthCodeRequest.getScopes()) || postAuthCodeRequest.getAppId().length() > 32) {
+        if (StringUtils.isBlank(postAuthCodeRequest.getTenantName()) || ArrayUtils.isEmpty(postAuthCodeRequest.getScopes())) {
             log.error("Invalid request, all parameter is blank");
             throw new BusinessException(BAD_REQUEST, ERROR_CODE_30000, "invalid request, all parameter is blank");
+        }
+    }
+
+    public static String generateAppId(String tenantName) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(tenantName.getBytes(StandardCharsets.UTF_8));
+            BigInteger number = new BigInteger(1, digest);
+            return number.toString().substring(0, 13); // potong 13 digit depan
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -28,9 +28,6 @@ public class PostTenantOmzetService {
 
 
     public ValidationResponse execute(PostTenantOmzetRequest input) {
-      var clientMap =  tokenRepository.findWithClientInfo(input.getAccessToken()) ;
-      TokenClientProjection client   = clientMap.get();
-
         TenantOmzet tenantOmzet = omzetRepository
                 .findByTenantNameAndSalesDate(input.getTenantName(), input.getSalesDate())
                 .orElseGet(() -> {
@@ -41,8 +38,8 @@ public class PostTenantOmzetService {
                     t.setDay(input.getDay());
                     t.setCreatedBy("SYSTEM");
                     t.setCreatedTime(new Timestamp(System.currentTimeMillis()));
-                    t.setTenantName(client.getAuthClientName());
-                    t.setBrandName(client.getAuthClientBrand());
+                    t.setTenantName(input.getTenantName());
+                    t.setBrandName(input.getBrandName());
                     // receipts sudah di‐inisialisasi di entitas
                     return t;
                 });

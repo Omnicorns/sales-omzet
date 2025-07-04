@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostAuthCodeRequest {
-    private String appId;
+    private String tenantName;
     private String[] scopes;
 }

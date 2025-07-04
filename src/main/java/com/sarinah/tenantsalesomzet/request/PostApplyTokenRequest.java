@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostApplyTokenRequest {
-    private String appId;
+    private String tenantName;
     private String authClientId;
     private String grantType;
     private String authCode;

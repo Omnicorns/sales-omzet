@@ -45,50 +45,50 @@ public class TokenSecurityValidator {
     }
 
     private void validateExpToken(Timestamp tokenExpTime, String accessToken,Boolean isUsedToken){
-        Token token = tokenRepository
-                .findByAccessToken(accessToken)
-                .orElseThrow(() ->
-                        new BusinessException(
-                                ERROR_CODE_30000,
-                                ERROR_MESSAGE_INVALID_ACCESS_TOKEN
-                        )
-                );
+//        Token token = tokenRepository
+//                .findByAccessToken(accessToken)
+//                .orElseThrow(() ->
+//                        new BusinessException(
+//                                ERROR_CODE_30000,
+//                                ERROR_MESSAGE_INVALID_ACCESS_TOKEN
+//                        )
+//                );
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
         // 2. Jika pertama kali dipakai (isUsedToken == false)
-        if (!Boolean.TRUE.equals(isUsedToken)) {
-            // 2a. Set expiry = now + 10 menit
-            Timestamp firstExpiry = new Timestamp(now.getTime() + 10L * 60 * 1000);
-            token.setAccessTokenExpiryTime(firstExpiry);
-            // 2b. Tandai sudah dipakai
-            token.setIsUsedToken(true);
-            // 2c. Simpan perubahan
-            tokenRepository.save(token);
-
-            log.info("First use of token, set expiry to {}", firstExpiry);
-            return;  // selesai, tidak lanjut ke validasi expired
-        }
+//        if (!Boolean.TRUE.equals(isUsedToken)) {
+//            // 2a. Set expiry = now + 10 menit
+//            Timestamp firstExpiry = new Timestamp(now.getTime() + 10L * 60 * 1000);
+//            token.setAccessTokenExpiryTime(firstExpiry);
+//            // 2b. Tandai sudah dipakai
+//            token.setIsUsedToken(true);
+//            // 2c. Simpan perubahan
+//            tokenRepository.save(token);
+//
+//            log.info("First use of token, set expiry to {}", firstExpiry);
+//            return;  // selesai, tidak lanjut ke validasi expired
+//        }
 
 
         Timestamp currentTime = new Timestamp(new Date().getTime());
         boolean expired = currentTime.after(tokenExpTime);
 
 
-        try {
+      //  try {
             if (expired) {
                 log.error("Access Token Expired at {}", tokenExpTime);
                 throw new BusinessException(ERROR_CODE_30000, ERROR_MESSAGE_EXPIRED_ACCESS_TOKEN);
             }
             // Kalau belum expired, method akan selesai normal
-        } finally {
-            if (expired) {
+     //   } finally {
+       //     if (expired) {
                 // Perpanjang 10 menit dari waktu sekarang
-                Timestamp newExpiry = new Timestamp(currentTime.getTime() + 10L * 60 * 1000);
-                tokenRepository.updateExpiryTimeByAccessToken(accessToken, newExpiry);
-                log.info("Extended token expiry to {}", newExpiry);
-            }
-        }
+      //          Timestamp newExpiry = new Timestamp(currentTime.getTime() + 10L * 60 * 1000);
+       //         tokenRepository.updateExpiryTimeByAccessToken(accessToken, newExpiry);
+      //          log.info("Extended token expiry to {}", newExpiry);
+      //      }newExpiry
+        //  }
 
     }
 }
