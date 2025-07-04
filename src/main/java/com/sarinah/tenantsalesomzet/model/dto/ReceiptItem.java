@@ -1,5 +1,6 @@
 package com.sarinah.tenantsalesomzet.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class ReceiptItem {
     private String receiptNumber;
     private BigDecimal amount;
     private String paymentType;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date ReceiptDate;
 
 }
