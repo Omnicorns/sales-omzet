@@ -17,9 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -150,9 +147,7 @@ public class PostApplyTokenService {
                 .scopes(tokenRequest.getScopes())
                 .appId(appId)
                 .authClientId(request.getAuthClientId())
-                .accessToken(String.valueOf(UUID.nameUUIDFromBytes(
-                       appId.getBytes(StandardCharsets.UTF_8)
-                )))
+                .accessToken(UUID.randomUUID().toString())
                 .accessTokenExpiryTime(new Timestamp(TimeUnit.SECONDS.toMillis(Long.parseLong(accessTokenExp)) + System.currentTimeMillis()))
                 .refreshToken(UUID.randomUUID().toString())
                 .refreshTokenExpiryTime(new Timestamp(TimeUnit.SECONDS.toMillis(Long.parseLong(refreshTokenExp)) + System.currentTimeMillis()))

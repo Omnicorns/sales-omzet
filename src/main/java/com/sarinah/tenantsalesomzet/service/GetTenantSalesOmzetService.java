@@ -35,12 +35,14 @@ public class GetTenantSalesOmzetService {
                 .salesDate(entity.getSalesDate())
                 .day(entity.getDay())
                 .totalOmzet(entity.getOmzet())
-                .receipts(entity.getReceipts().stream().map(r -> ReceiptItem.builder()
+                .receipts(entity.getReceipts().stream().
+                         map(r -> ReceiptItem.builder()
                         .receiptNumber(r.getReceiptNumber())
                         .amount(r.getAmount())
                         .paymentType(r.getPaymentType())
-                        .ReceiptDate(r.getReceiptDate())
-                        .build()).collect(Collectors.toList()))
+                        .receiptDate(r.getReceiptDate())
+                        .build())
+                        .collect(Collectors.toList()))
                 .build();
     }
 }

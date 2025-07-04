@@ -1,5 +1,6 @@
 package com.sarinah.tenantsalesomzet.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sarinah.tenantsalesomzet.model.dto.ReceiptItem;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class TenantOmzetResponse {
     private String tenantName;
     private String brandName;
     private String lotLocation;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date salesDate;
     private String day;
     private BigDecimal totalOmzet;

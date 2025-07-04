@@ -18,6 +18,6 @@ public class ReceiptItem {
     private BigDecimal amount;
     private String paymentType;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
-    private Date ReceiptDate;
+    private Date receiptDate;
 
 }
