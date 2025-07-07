@@ -35,6 +35,7 @@ public class GetTenantSalesOmzetService {
                 .salesDate(entity.getSalesDate())
                 .day(entity.getDay())
                 .totalOmzet(entity.getOmzet())
+                .updatedTime(entity.getUpdatedTime())
                 .receipts(entity.getReceipts().stream().
                          map(r -> ReceiptItem.builder()
                         .receiptNumber(r.getReceiptNumber())
