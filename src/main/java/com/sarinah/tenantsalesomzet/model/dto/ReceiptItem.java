@@ -17,7 +17,7 @@ public class ReceiptItem {
     private String receiptNumber;
     private BigDecimal amount;
     private String paymentType;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private Date receiptDate;
 
 }
