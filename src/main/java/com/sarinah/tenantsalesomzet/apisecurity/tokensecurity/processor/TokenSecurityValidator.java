@@ -1,14 +1,19 @@
 package com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.processor;
 
+import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.configuration.ApiContextHolder;
+import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.model.ApiContext;
 import com.sarinah.tenantsalesomzet.exception.BusinessException;
 import com.sarinah.tenantsalesomzet.model.entity.Token;
 import com.sarinah.tenantsalesomzet.repository.TokenRepository;
 import com.sarinah.tenantsalesomzet.request.PostGetTokenRequest;
 import com.sarinah.tenantsalesomzet.response.PostGetTokenResponse;
 import com.sarinah.tenantsalesomzet.service.PostGetTokenService;
+import com.sarinah.tenantsalesomzet.util.SimpleAppIdUtil;
 import lombok.extern.log4j.Log4j2;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.util.Base64;
 import java.util.Date;
 
 import static com.sarinah.tenantsalesomzet.util.Constant.*;
@@ -33,12 +38,19 @@ public class TokenSecurityValidator {
         }
 
 
-        PostGetTokenResponse postGetTokenResponse = postGetTokenService.execute(PostGetTokenRequest.builder().accessToken(reqToken).build());
+          PostGetTokenResponse postGetTokenResponse = postGetTokenService.execute(PostGetTokenRequest.builder().accessToken(reqToken).build());
             if (null == postGetTokenResponse.getAppId()){
                 log.error(" Access Token Not Valid");
                 throw new BusinessException(ERROR_CODE_30000, ERROR_MESSAGE_INVALID_ACCESS_TOKEN);
             }
             validateExpToken(postGetTokenResponse.getAccessTokenExpiryTime(),postGetTokenResponse.getAccessToken(),postGetTokenResponse.getIsUsedToken());
+
+         String[] parts = SimpleAppIdUtil.decodeAppId(postGetTokenResponse.getAppId());
+         System.out.println(parts[0]); // TenantA
+         System.out.println(parts[1]);
+
+// Simpan di context
+        ApiContextHolder.setContext(new ApiContext(parts[0], parts[1]));
 
 
 
@@ -89,6 +101,19 @@ public class TokenSecurityValidator {
       //          log.info("Extended token expiry to {}", newExpiry);
       //      }newExpiry
         //  }
+
+    }
+
+    public static String[] decodeAppId(String appId) {
+
+
+        // 2. Decode dengan URL-safe decoder
+        byte[] decodedBytes = Base64.getUrlDecoder().decode(appId);
+        String joint = new String(decodedBytes, StandardCharsets.UTF_8);
+
+        // 3. Split kembali jadi tenantName & tenantBrand
+        return joint.split("::", 2);
+        // split jadi dua bagian
 
     }
 }

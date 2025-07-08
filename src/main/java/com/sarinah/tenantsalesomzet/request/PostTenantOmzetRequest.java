@@ -24,6 +24,6 @@ public class PostTenantOmzetRequest {
     private String lotLocation;
     private BigDecimal omzet;
     private List<ReceiptItem> receiptList;
-    private String accessToken;
+
 
 }

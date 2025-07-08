@@ -6,6 +6,7 @@ import com.sarinah.tenantsalesomzet.repository.AuthCodeRepository;
 import com.sarinah.tenantsalesomzet.request.PostAuthCodeRequest;
 import com.sarinah.tenantsalesomzet.response.PostAuthCodeResponse;
 
+import com.sarinah.tenantsalesomzet.util.SimpleAppIdUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
@@ -16,6 +17,8 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.sql.Timestamp;
+import java.util.Base64;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -32,25 +35,62 @@ public class PostAuthCodeService {
     public PostAuthCodeResponse execute(PostAuthCodeRequest postAuthCodeRequest) {
         this.validationAuthCode(postAuthCodeRequest);
         try {
-            var authCode = AuthCode.builder()
-                    .authCodeId(String.valueOf(UUID.randomUUID()))
-                    .appId(generateAppId(postAuthCodeRequest.getTenantName()))
-                    .scopes(String.join(",", postAuthCodeRequest.getScopes()))
-                    .authExpiryTime(new Timestamp(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(Long.parseLong("300"))))
-                    .authorizedCode(UUID.randomUUID().toString())
+            String tenantName  = postAuthCodeRequest.getTenantName();
+            String tenantBrand = postAuthCodeRequest.getTenantBrand();
+
+            String appId = SimpleAppIdUtil.encodeAppId(tenantName, tenantBrand);
+
+            // 2. auth code deterministic berdasarkan tenantName::tenantBrand
+            String authorizedCode = generateAuthCode(tenantName, tenantBrand);
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            Timestamp expiry = new Timestamp(
+                    now.getTime() + TimeUnit.SECONDS.toMillis(Long.parseLong(postAuthCodeRequest.getExpirySeconds()))
+            );
+
+            Optional<AuthCode> existingOpt =
+                    authCodeRepository.findByAuthorizedCodeAndIsDeletedFalse(authorizedCode);
+
+            if (existingOpt.isPresent()) {
+                AuthCode existing = existingOpt.get();
+
+                // reuse jika belum dipakai dan belum expired
+                if (!existing.getIsUsedToken() && existing.getAuthExpiryTime().after(now)) {
+                    return PostAuthCodeResponse.builder()
+                            .authCode(authorizedCode)
+                            .build();
+                }
+
+                // otherwise reset record
+                existing.setAuthExpiryTime(expiry);
+                existing.setIsUsedToken(false);
+                existing.setUpdatedTime(now);
+                existing.setUpdatedBy("SYSTEM");
+                authCodeRepository.save(existing);
+
+                return PostAuthCodeResponse.builder()
+                        .authCode(authorizedCode)
+                        .build();
+            }
+
+            // 4. buat record baru
+            AuthCode authCode = AuthCode.builder()
+                    .authCodeId(UUID.randomUUID().toString())
+                    .appId(appId)
+                    .scopes(String.join(",",postAuthCodeRequest.getScopes()))
+                    .authorizedCode(authorizedCode)
+                    .authExpiryTime(expiry)
                     .isUsedToken(false)
                     .isDeleted(false)
+                    .createdTime(now)
+                    .createdBy("SYSTEM")
+                    .updatedTime(now)
+                    .updatedBy("SYSTEM")
                     .build();
-
-            authCode.setCreatedTime(new Timestamp(System.currentTimeMillis()));
-            authCode.setCreatedBy("SYSTEM");
-            authCode.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
-            authCode.setUpdatedBy("SYSTEM");
 
             authCodeRepository.save(authCode);
 
             return PostAuthCodeResponse.builder()
-                    .authCode(authCode.getAuthorizedCode())
+                    .authCode(authorizedCode)
                     .build();
 
         } catch (Exception e) {
@@ -67,14 +107,12 @@ public class PostAuthCodeService {
         }
     }
 
-    public static String generateAppId(String tenantName) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(tenantName.getBytes(StandardCharsets.UTF_8));
-            BigInteger number = new BigInteger(1, digest);
-            return number.toString().substring(0, 13); // potong 13 digit depan
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+
+
+
+    public static String generateAuthCode(String tenantName, String tenantBrand) {
+        String input = tenantName + "::" + tenantBrand;
+        return UUID.nameUUIDFromBytes(input.getBytes(StandardCharsets.UTF_8))
+                .toString();
     }
 }

@@ -11,5 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PostAuthCodeRequest {
     private String tenantName;
+    private String tenantBrand;
     private String[] scopes;
+    private String expirySeconds;
 }

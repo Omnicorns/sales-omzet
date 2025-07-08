@@ -2,6 +2,8 @@ package com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.interceptor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.processor.TokenSecurityValidator;
+import com.sarinah.tenantsalesomzet.exception.BusinessException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -9,7 +11,12 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import static com.sarinah.tenantsalesomzet.util.Constant.ERROR_CODE_30000;
+import static com.sarinah.tenantsalesomzet.util.Constant.ERROR_MESSAGE_INVALID_ACCESS_TOKEN;
 import static com.sarinah.tenantsalesomzet.util.JsonToStringConverter.convertJsonToString;
 
 @Log4j2
@@ -32,18 +39,19 @@ public class TokenSecurityInterceptor {
     @Before("controller() && tokenScope()")
     public void validate(JoinPoint joinPoint) {
 
-        String requestBody = null;
-        try {
-            requestBody = convertJsonToString(joinPoint.getArgs());
-        } catch (JsonProcessingException e) {
-            requestBody = "{}";
+        ServletRequestAttributes attrs =
+                (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+        HttpServletRequest request = attrs.getRequest();
+
+        // Baca header Authorization
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new BusinessException(
+                    ERROR_CODE_30000, ERROR_MESSAGE_INVALID_ACCESS_TOKEN);
         }
 
-        JSONArray jsonArray = new JSONArray(requestBody);
-
-        JSONObject jsonObject = jsonArray.getJSONObject(0);
-
-        tokenSecurityValidator.validateToken(jsonObject.getString("accessToken"));
+        String token = authHeader.substring(7);
+        tokenSecurityValidator.validateToken(token);
 
     }
 }

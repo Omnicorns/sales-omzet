@@ -57,4 +57,7 @@ public interface TokenRepository extends JpaRepository<Token, String> {
     Optional<TokenClientProjection> findWithClientInfo(
              String accessToken
     );
+
+    Optional<Token> findByAppIdAndAuthClientIdAndIsDeletedFalse(String appId, String authClientId);
+
 }

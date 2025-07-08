@@ -141,27 +141,54 @@ public class PostApplyTokenService {
     }
 
     private Token generateToken(PostApplyTokenRequest request, String accessTokenExp, String refreshTokenExp, TokenRequest tokenRequest) {
-        var appId = tokenRequest.getUserId() ;
-        Token token = Token.builder()
-                .tokenId(UUID.randomUUID().toString())
-                .scopes(tokenRequest.getScopes())
-                .appId(appId)
-                .authClientId(request.getAuthClientId())
-                .accessToken(UUID.randomUUID().toString())
-                .accessTokenExpiryTime(new Timestamp(TimeUnit.SECONDS.toMillis(Long.parseLong(accessTokenExp)) + System.currentTimeMillis()))
-                .refreshToken(UUID.randomUUID().toString())
-                .refreshTokenExpiryTime(new Timestamp(TimeUnit.SECONDS.toMillis(Long.parseLong(refreshTokenExp)) + System.currentTimeMillis()))
-                .isUsedToken(false)
-                .isDeleted(false)
-                .createdTime(new Timestamp(System.currentTimeMillis()))
-                .createdBy("SYSTEM")
-                .updatedTime(new Timestamp(System.currentTimeMillis()))
-                .updatedBy("SYSTEM")
-                .build();
+            String appId        = tokenRequest.getUserId();
+            String authClientId = request.getAuthClientId();
+            Timestamp now       = new Timestamp(System.currentTimeMillis());
 
-        tokenRepository.save(token);
+            // Cek token existing untuk appId + authClientId
+            Optional<Token> existingOpt =
+                    tokenRepository.findByAppIdAndAuthClientIdAndIsDeletedFalse(appId, authClientId);
 
-        return token;
+            if (existingOpt.isPresent()) {
+                Token existing = existingOpt.get();
+                if (existing.getAccessTokenExpiryTime().after(now)) {
+                    // reuse token yang masih valid
+                    return existing;
+                }
+                // tandai expired token sebagai deleted
+                existing.setIsDeleted(true);
+                existing.setUpdatedTime(now);
+                existing.setUpdatedBy("SYSTEM");
+                tokenRepository.save(existing);
+            }
+
+            // generate token baru
+            String newAccessToken  = UUID.randomUUID().toString();
+            String newRefreshToken = UUID.randomUUID().toString();
+
+            Token token = Token.builder()
+                    .tokenId(UUID.randomUUID().toString())
+                    .scopes(tokenRequest.getScopes())
+                    .appId(appId)
+                    .authClientId(authClientId)
+                    .accessToken(newAccessToken)
+                    .accessTokenExpiryTime(new Timestamp(
+                            now.getTime() + TimeUnit.SECONDS.toMillis(Long.parseLong(accessTokenExp))
+                    ))
+                    .refreshToken(newRefreshToken)
+                    .refreshTokenExpiryTime(new Timestamp(
+                            now.getTime() + TimeUnit.SECONDS.toMillis(Long.parseLong(refreshTokenExp))
+                    ))
+                    .isUsedToken(false)
+                    .isDeleted(false)
+                    .createdTime(now)
+                    .createdBy("SYSTEM")
+                    .updatedTime(now)
+                    .updatedBy("SYSTEM")
+                    .build();
+
+            return tokenRepository.save(token);
+
     }
 
     private ConfigAccessTokenMapping getConfigs() {
