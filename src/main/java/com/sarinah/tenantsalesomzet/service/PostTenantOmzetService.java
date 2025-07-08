@@ -31,7 +31,7 @@ public class PostTenantOmzetService {
     private final ValidateTenantOmzetService validateTenantOmzetService;
 
     public ValidationResponse execute(PostTenantOmzetRequest input) {
-        if (validateTenantOmzetService.execute(input).getValidationFailed()) {
+        if (validateTenantOmzetService.execute(input).getResult()) {
             ApiContext ctx = ApiContextHolder.getContext();
             String tenant = ctx.getTenantName();
             String brand = ctx.getTenantBrand();
