@@ -84,7 +84,6 @@ public class PostTenantOmzetService {
                     nr.setReceiptNumber(r.getReceiptNumber());
                     nr.setAmount(r.getAmount());
                     nr.setPaymentType(r.getPaymentType());
-                    nr.setReceiptDate(r.getReceiptDate());
                     nr.setTenantOmzet(tenantOmzet);
                     nr.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
 

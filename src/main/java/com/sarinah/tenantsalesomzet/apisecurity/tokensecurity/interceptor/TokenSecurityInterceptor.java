@@ -1,6 +1,5 @@
 package com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.interceptor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.processor.TokenSecurityValidator;
 import com.sarinah.tenantsalesomzet.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,15 +8,12 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import static com.sarinah.tenantsalesomzet.util.Constant.ERROR_CODE_30000;
 import static com.sarinah.tenantsalesomzet.util.Constant.ERROR_MESSAGE_INVALID_ACCESS_TOKEN;
-import static com.sarinah.tenantsalesomzet.util.JsonToStringConverter.convertJsonToString;
 
 @Log4j2
 @Aspect
