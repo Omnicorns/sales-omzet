@@ -116,12 +116,12 @@ public class ReceiptItem {
         if (dpp instanceof String) {
             String s = ((String) dpp).replaceAll("[,.]", "").trim();
             if (!s.matches("^\\d+$")) {
-                throw new BusinessException(ERROR_CODE_30000,"Format amount tidak valid");
+                throw new BusinessException(ERROR_CODE_30000,"Format dpp tidak valid");
             }
             if (s.isEmpty()) return BigDecimal.ZERO;
             return new BigDecimal(s);
         }
-        throw new IllegalArgumentException("Format amount tidak valid: " + dpp);
+        throw new IllegalArgumentException("Format dpp tidak valid: " + dpp);
     }
 
 
@@ -143,12 +143,12 @@ public class ReceiptItem {
         if (ppn instanceof String) {
             String s = ((String) ppn).replaceAll("[,.]", "").trim();
             if (!s.matches("^\\d+$")) {
-                throw new BusinessException(ERROR_CODE_30000,"Format amount tidak valid");
+                throw new BusinessException(ERROR_CODE_30000,"Format ppn tidak valid");
             }
             if (s.isEmpty()) return BigDecimal.ZERO;
             return new BigDecimal(s);
         }
-        throw new IllegalArgumentException("Format amount tidak valid: " + dpp);
+        throw new IllegalArgumentException("Format ppn tidak valid: " + dpp);
     }
 
     @JsonProperty("serviceCharge")
@@ -169,12 +169,12 @@ public class ReceiptItem {
         if (serviceCharge instanceof String) {
             String s = ((String) serviceCharge).replaceAll("[,.]", "").trim();
             if (!s.matches("^\\d+$")) {
-                throw new BusinessException(ERROR_CODE_30000,"Format amount tidak valid");
+                throw new BusinessException(ERROR_CODE_30000,"Format serviceCharge tidak valid");
             }
             if (s.isEmpty()) return BigDecimal.ZERO;
             return new BigDecimal(s);
         }
-        throw new IllegalArgumentException("Format amount tidak valid: " + dpp);
+        throw new IllegalArgumentException("Format serviceCharge tidak valid: " + dpp);
     }
 
 }
