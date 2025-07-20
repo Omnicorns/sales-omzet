@@ -131,14 +131,14 @@ public class ReceiptItem {
     }
 
     public Object getPpn() {
-        return this.getPpn();
+        return this.ppn;
     }
 
     // Getter helper: selalu return BigDecimal
     public BigDecimal getPpnAsBigDecimal() {
         if (ppn == null) return BigDecimal.ZERO;
         if (ppn instanceof Number) {
-            return new BigDecimal(dpp.toString());
+            return new BigDecimal(ppn.toString());
         }
         if (ppn instanceof String) {
             String s = ((String) ppn).replace(",", "").trim();
@@ -157,14 +157,14 @@ public class ReceiptItem {
     }
 
     public Object getServiceCharge() {
-        return this.getServiceCharge();
+        return this.serviceCharge;
     }
 
     // Getter helper: selalu return BigDecimal
     public BigDecimal getServiceChargeAsBigDecimal() {
         if (serviceCharge == null) return BigDecimal.ZERO;
         if (serviceCharge instanceof Number) {
-            return new BigDecimal(dpp.toString());
+            return new BigDecimal(serviceCharge.toString());
         }
         if (serviceCharge instanceof String) {
             String s = ((String) dpp).replace(",", "").trim();

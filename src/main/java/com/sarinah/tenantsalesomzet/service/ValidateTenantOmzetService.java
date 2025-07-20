@@ -19,24 +19,12 @@ import static com.sarinah.tenantsalesomzet.util.Constant.ERR_MSG_AUTH_CLIENT_UNS
 @Service
 public class ValidateTenantOmzetService {
     public ValidationResponse execute (PostTenantOmzetRequest input){
-        this.doFilterSalesDate(input);
         this.doFilterReceiptList(input);
 
         return ValidationResponse.builder().result(true).build();
     }
 
-    private void doFilterSalesDate(PostTenantOmzetRequest input) {
-        Date salesDate = input.getSalesDate();
 
-        // 1. Cek null
-        if (salesDate == null) {
-            throw new BusinessException(ERROR_CODE_30000,"request invalid");
-
-        }
-
-        // 2. (Opsional) cek range, misal jangan di-future:
-
-    }
 
     private void doFilterReceiptList(PostTenantOmzetRequest input) {
         List<ReceiptItem> receiptList = input.getReceiptList();

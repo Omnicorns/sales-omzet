@@ -1,7 +1,8 @@
 package com.sarinah.tenantsalesomzet.response;
 
+
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.sarinah.tenantsalesomzet.model.dto.ReceiptItem;
+import com.sarinah.tenantsalesomzet.model.dto.ReceiptDTO;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,5 +23,6 @@ public class TenantOmzetResponse {
     private BigDecimal totalOmzet;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date updatedTime;
-    private List<ReceiptItem> receipts;
+
+    private List<ReceiptDTO> receipts;
 }
