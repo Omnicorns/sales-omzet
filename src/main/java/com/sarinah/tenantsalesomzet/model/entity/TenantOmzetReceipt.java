@@ -32,6 +32,10 @@ public class TenantOmzetReceipt {
     @Temporal(TemporalType.TIMESTAMP)
     private Timestamp updatedTime;
 
+    private BigDecimal ppn;
+    private BigDecimal dpp;
+    private BigDecimal serviceCharge;
+
 
     @ManyToOne
     @JoinColumn(name = "tenant_omzet_id")

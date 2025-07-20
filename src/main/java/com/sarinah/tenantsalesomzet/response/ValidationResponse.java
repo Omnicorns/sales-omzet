@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ValidationResponse {
     private Boolean result;
-    private Boolean validationFailed;
+    private  String message;
 }

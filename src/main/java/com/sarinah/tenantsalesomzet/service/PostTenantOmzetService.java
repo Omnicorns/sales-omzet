@@ -15,10 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
+import java.time.format.TextStyle;
 import java.util.*;
 
 
@@ -50,6 +48,20 @@ public class PostTenantOmzetService {
                         // receipts sudah di‐inisialisasi di entitas
                         return t;
                     });
+            // Set salesDate dan day dari receipt pertama (jika ada)
+            if (!input.getReceiptList().isEmpty()) {
+                ReceiptItem firstReceipt = input.getReceiptList().get(0);
+                Date dateFromRequest = firstReceipt.getReceiptDate(); // hasil parsing setter
+
+// Langsung konversi ke LocalDateTime tanpa pecah LocalDate/LocalTime!
+                Instant instant = dateFromRequest.toInstant();
+                ZoneId zone = ZoneId.systemDefault(); // atau ZoneId.of("Asia/Jakarta")
+                LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, zone);
+                String namaHari = localDateTime.getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("id", "ID"));
+                tenantOmzet.setSalesDate(Timestamp.valueOf(localDateTime));
+                tenantOmzet.setDay(namaHari); // Atau sesuaikan format
+            }
+
             tenantOmzet.setUpdatedBy("SYSTEM");
             tenantOmzet.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
 
@@ -60,7 +72,7 @@ public class PostTenantOmzetService {
             for (ReceiptItem r : input.getReceiptList()) {
                 boolean exists = existingReceipts.stream().anyMatch(rc ->
                         rc.getReceiptNumber().equals(r.getReceiptNumber())
-                                && rc.getAmount().compareTo(r.getAmount()) == 0
+                                && rc.getAmount().compareTo(r.getAmountAsBigDecimal()) == 0
                 );
 
                 if (!exists) {
@@ -68,21 +80,21 @@ public class PostTenantOmzetService {
                     Date dateOnly = r.getReceiptDate();
 
 // 1. Konversi ke LocalDate (tanpa zona kalau di server sudah sesuai Jakarta)
-                    LocalDate localDate = dateOnly.toInstant()
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate();
 
-// 2. Ambil waktu sekarang
-                    LocalTime currentTime = LocalTime.now();
 
-// 3. Gabungkan jadi LocalDateTime
-                    LocalDateTime combined = LocalDateTime.of(localDate, currentTime);
+// Konversi Date ke LocalDateTime (agar preserve jam/menit/detik yang dikirim)
+                    Instant instant = dateOnly.toInstant();
+                    ZoneId zone = ZoneId.systemDefault();
+                    LocalDateTime combined = LocalDateTime.ofInstant(instant, zone);
 
 // buat LocalDateTime dengan waktu sekarang
                     nr.setReceiptDate(Timestamp.valueOf(combined));
                     nr.setId(UUID.randomUUID().toString());
                     nr.setReceiptNumber(r.getReceiptNumber());
-                    nr.setAmount(r.getAmount());
+                    nr.setServiceCharge(r.getServiceChargeAsBigDecimal());
+                    nr.setDpp(r.getDppAsBigDecimal());
+                    nr.setPpn(r.getPpnAsBigDecimal());
+                    nr.setAmount(r.getAmountAsBigDecimal());
                     nr.setPaymentType(r.getPaymentType());
                     nr.setTenantOmzet(tenantOmzet);
                     nr.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
@@ -108,6 +120,7 @@ public class PostTenantOmzetService {
         }
             return ValidationResponse.builder()
                     .result(true)
+                    .message("Data omzet berhasil disimpan.")
                     .build();
         }
 
