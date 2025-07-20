@@ -87,7 +87,7 @@ public class ReceiptItem {
             return new BigDecimal(amount.toString());
         }
         if (amount instanceof String) {
-            String s = ((String) amount).replace(",", "").trim();
+            String s = ((String) amount).replaceAll("[,.]", "").trim();
             if (!s.matches("^\\d+$")) {
                 throw new BusinessException(ERROR_CODE_30000,"Format amount tidak valid");
             }
@@ -114,7 +114,7 @@ public class ReceiptItem {
             return new BigDecimal(dpp.toString());
         }
         if (dpp instanceof String) {
-            String s = ((String) dpp).replace(",", "").trim();
+            String s = ((String) dpp).replaceAll("[,.]", "").trim();
             if (!s.matches("^\\d+$")) {
                 throw new BusinessException(ERROR_CODE_30000,"Format amount tidak valid");
             }
@@ -141,7 +141,7 @@ public class ReceiptItem {
             return new BigDecimal(ppn.toString());
         }
         if (ppn instanceof String) {
-            String s = ((String) ppn).replace(",", "").trim();
+            String s = ((String) ppn).replaceAll("[,.]", "").trim();
             if (!s.matches("^\\d+$")) {
                 throw new BusinessException(ERROR_CODE_30000,"Format amount tidak valid");
             }
@@ -167,7 +167,7 @@ public class ReceiptItem {
             return new BigDecimal(serviceCharge.toString());
         }
         if (serviceCharge instanceof String) {
-            String s = ((String) dpp).replace(",", "").trim();
+            String s = ((String) serviceCharge).replaceAll("[,.]", "").trim();
             if (!s.matches("^\\d+$")) {
                 throw new BusinessException(ERROR_CODE_30000,"Format amount tidak valid");
             }
