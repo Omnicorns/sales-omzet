@@ -39,8 +39,6 @@ public class PostTenantOmzetService {
                 ZoneId zone = ZoneId.systemDefault(); // atau ZoneId.of("Asia/Jakarta")
                 localDateTime = LocalDateTime.ofInstant(instant, zone);
                 namaHari = localDateTime.getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("id", "ID"));
-
-
             }
             ApiContext ctx = ApiContextHolder.getContext();
             String tenant = ctx.getTenantName();
@@ -87,7 +85,6 @@ public class PostTenantOmzetService {
                     ZoneId zone = ZoneId.systemDefault();
                     LocalDateTime combined = LocalDateTime.ofInstant(instant, zone);
 
-// buat LocalDateTime dengan waktu sekarang
                     nr.setReceiptDate(Timestamp.valueOf(combined));
                     nr.setId(UUID.randomUUID().toString());
                     nr.setReceiptNumber(r.getReceiptNumber());
@@ -98,7 +95,6 @@ public class PostTenantOmzetService {
                     nr.setPaymentType(r.getPaymentType());
                     nr.setTenantOmzet(tenantOmzet);
                     nr.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
-
                     existingReceipts.add(nr);
                 }
             }
@@ -114,8 +110,6 @@ public class PostTenantOmzetService {
                     .flatMap(Set::stream)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             tenantOmzet.setOmzet(totalOmzet);
-
-            // 5. Simpan header beserta semua child (only new ones get INSERTed)
             omzetRepository.save(tenantOmzet);
         }
         return ValidationResponse.builder()

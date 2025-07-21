@@ -17,7 +17,7 @@ public class TenantOmzetResponse {
     private String tenantName;
     private String brandName;
     private String lotLocation;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Asia/Jakarta")
     private Date salesDate;
     private String day;
     private BigDecimal totalOmzet;

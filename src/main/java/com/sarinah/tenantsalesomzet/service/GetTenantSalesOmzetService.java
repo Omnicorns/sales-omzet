@@ -24,11 +24,23 @@ public class GetTenantSalesOmzetService {
     @Transactional
     public Page<TenantOmzetResponse>  execute(Date startDate, Date endDate, Pageable pageable) {
         Calendar cal = Calendar.getInstance();
+        cal.setTime(startDate);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date normalizedStart = cal.getTime();
+
+        // Normalisasi endDate ke awal hari berikutnya
         cal.setTime(endDate);
-        cal.add(Calendar.DATE, 1);
-        Date inclusiveEndDate = cal.getTime();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        cal.add(Calendar.DAY_OF_MONTH, 1); // Supaya jam berapapun di endDate ikut
+        Date normalizedEnd = cal.getTime();
         Page<TenantOmzet> page = tenantOmzetRepository
-                .findBySalesDateBetween(startDate, inclusiveEndDate, pageable);
+                .findBySalesDateGreaterThanEqualAndSalesDateLessThan(normalizedStart, normalizedEnd, pageable);
 
         return page.map(this::mapToResponse);
     }
