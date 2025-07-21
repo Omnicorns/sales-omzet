@@ -30,17 +30,33 @@ public class PostTenantOmzetService {
 
     public ValidationResponse execute(PostTenantOmzetRequest input) {
         if (validateTenantOmzetService.execute(input).getResult()) {
+            LocalDateTime localDateTime = null;
+            String namaHari = null;
+            if (!input.getReceiptList().isEmpty()) {
+                ReceiptItem firstReceipt = input.getReceiptList().get(0);
+                Date dateFromRequest = firstReceipt.getReceiptDate(); // hasil parsing setter
+                Instant instant = dateFromRequest.toInstant();
+                ZoneId zone = ZoneId.systemDefault(); // atau ZoneId.of("Asia/Jakarta")
+                localDateTime = LocalDateTime.ofInstant(instant, zone);
+                namaHari = localDateTime.getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("id", "ID"));
+
+
+            }
             ApiContext ctx = ApiContextHolder.getContext();
             String tenant = ctx.getTenantName();
             String brand = ctx.getTenantBrand();
+            String finalNamaHari = namaHari;
+
+            LocalDateTime normalizedDate = toStartOfDay(localDateTime); // dari receipt pertama
+            Timestamp salesDate = Timestamp.valueOf(normalizedDate);
             TenantOmzet tenantOmzet = omzetRepository
-                    .findByTenantNameAndSalesDate(tenant, input.getSalesDate())
+                    .findByTenantNameAndSalesDate(tenant, salesDate)
                     .orElseGet(() -> {
                         TenantOmzet t = new TenantOmzet();
                         t.setTenantId(UUID.randomUUID().toString());
                         t.setLotLocation(input.getLotLocation());
-                        t.setSalesDate(input.getSalesDate());
-                        t.setDay(input.getDay());
+                        t.setSalesDate(salesDate);
+                        t.setDay(finalNamaHari); // Atau sesuaikan format
                         t.setCreatedBy("SYSTEM");
                         t.setCreatedTime(new Timestamp(System.currentTimeMillis()));
                         t.setTenantName(tenant);
@@ -49,18 +65,7 @@ public class PostTenantOmzetService {
                         return t;
                     });
             // Set salesDate dan day dari receipt pertama (jika ada)
-            if (!input.getReceiptList().isEmpty()) {
-                ReceiptItem firstReceipt = input.getReceiptList().get(0);
-                Date dateFromRequest = firstReceipt.getReceiptDate(); // hasil parsing setter
 
-// Langsung konversi ke LocalDateTime tanpa pecah LocalDate/LocalTime!
-                Instant instant = dateFromRequest.toInstant();
-                ZoneId zone = ZoneId.systemDefault(); // atau ZoneId.of("Asia/Jakarta")
-                LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, zone);
-                String namaHari = localDateTime.getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("id", "ID"));
-                tenantOmzet.setSalesDate(Timestamp.valueOf(localDateTime));
-                tenantOmzet.setDay(namaHari); // Atau sesuaikan format
-            }
 
             tenantOmzet.setUpdatedBy("SYSTEM");
             tenantOmzet.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
@@ -78,11 +83,6 @@ public class PostTenantOmzetService {
                 if (!exists) {
                     TenantOmzetReceipt nr = new TenantOmzetReceipt();
                     Date dateOnly = r.getReceiptDate();
-
-// 1. Konversi ke LocalDate (tanpa zona kalau di server sudah sesuai Jakarta)
-
-
-// Konversi Date ke LocalDateTime (agar preserve jam/menit/detik yang dikirim)
                     Instant instant = dateOnly.toInstant();
                     ZoneId zone = ZoneId.systemDefault();
                     LocalDateTime combined = LocalDateTime.ofInstant(instant, zone);
@@ -118,10 +118,16 @@ public class PostTenantOmzetService {
             // 5. Simpan header beserta semua child (only new ones get INSERTed)
             omzetRepository.save(tenantOmzet);
         }
-            return ValidationResponse.builder()
-                    .result(true)
-                    .message("Data omzet berhasil disimpan.")
-                    .build();
-        }
-
+        return ValidationResponse.builder()
+                .result(true)
+                .message("Data omzet berhasil disimpan.")
+                .build();
     }
+
+    private LocalDateTime toStartOfDay(LocalDateTime dt) {
+        return dt.toLocalDate().atStartOfDay();
+    }
+
+}
+
+
