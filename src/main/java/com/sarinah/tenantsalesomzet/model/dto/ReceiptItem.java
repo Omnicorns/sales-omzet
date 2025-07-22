@@ -49,7 +49,7 @@ public class ReceiptItem {
                 System.out.println("Parsed date: " + this.receiptDate);
                 return;
             } catch (ParseException e) {
-                throw new BusinessException(ERROR_CODE_30000,"Format receipt date tidak valid");
+
             }
         }     throw new BusinessException(ERROR_CODE_30000,"Format receipt date tidak valid");
     }
