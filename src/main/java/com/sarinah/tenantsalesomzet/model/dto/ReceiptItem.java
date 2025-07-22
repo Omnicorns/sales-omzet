@@ -94,7 +94,7 @@ public class ReceiptItem {
             if (s.isEmpty()) return BigDecimal.ZERO;
             return new BigDecimal(s);
         }
-        throw new IllegalArgumentException("Format amount tidak valid: " + amount);
+        throw new BusinessException(ERROR_CODE_30000,"Format amount tidak valid");
     }
 
 
@@ -121,7 +121,7 @@ public class ReceiptItem {
             if (s.isEmpty()) return BigDecimal.ZERO;
             return new BigDecimal(s);
         }
-        throw new IllegalArgumentException("Format dpp tidak valid: " + dpp);
+        throw new BusinessException(ERROR_CODE_30000,"Format dpp tidak valid");
     }
 
 
@@ -148,7 +148,7 @@ public class ReceiptItem {
             if (s.isEmpty()) return BigDecimal.ZERO;
             return new BigDecimal(s);
         }
-        throw new IllegalArgumentException("Format ppn tidak valid: " + dpp);
+        throw new BusinessException(ERROR_CODE_30000,"Format ppn tidak valid");
     }
 
     @JsonProperty("serviceCharge")
@@ -174,7 +174,7 @@ public class ReceiptItem {
             if (s.isEmpty()) return BigDecimal.ZERO;
             return new BigDecimal(s);
         }
-        throw new IllegalArgumentException("Format serviceCharge tidak valid: " + dpp);
+        throw new BusinessException(ERROR_CODE_30000,"Format serviceCharge tidak valid");
     }
 
 }
