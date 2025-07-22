@@ -49,11 +49,12 @@ public class ReceiptItem {
                 System.out.println("Parsed date: " + this.receiptDate);
                 return;
             } catch (ParseException e) {
-                // try next format
+                throw new BusinessException(ERROR_CODE_30000,"Format receipt date tidak valid");
             }
-        }
-        throw new IllegalArgumentException("Format tanggal tidak didukung: " + dateStr);
+        }     throw new BusinessException(ERROR_CODE_30000,"Format receipt date tidak valid");
     }
+
+
 
     // Getter return Date as is (untuk backend logic)
     public Date getReceiptDate() {
