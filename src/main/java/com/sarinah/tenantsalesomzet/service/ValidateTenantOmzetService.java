@@ -47,6 +47,11 @@ public class ValidateTenantOmzetService {
                 throw new BusinessException(ERROR_CODE_30000, "Receipt Number tidak boleh kosong");
             }
 
+            Date date = r.getReceiptDate();
+            if (date == null){
+                throw new BusinessException(ERROR_CODE_30000, "Tanggal Receipt tidak boleh kosong");
+            }
+
     }
     }
 
