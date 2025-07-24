@@ -22,7 +22,7 @@ public class TenantOmzetDateRangeRequest {
     private int page = 0;  // default halaman pertama
 
     @Builder.Default
-    private int size = 20;// default 20 data per halaman
+    private int size = 500;// default 20 data per halaman
 
     private String sortDirection;
 
