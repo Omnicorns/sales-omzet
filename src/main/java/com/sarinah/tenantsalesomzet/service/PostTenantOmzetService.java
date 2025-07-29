@@ -83,8 +83,10 @@ public class PostTenantOmzetService {
                     TenantOmzetReceipt nr = new TenantOmzetReceipt();
                     nr.setId             (UUID.randomUUID().toString());
                     nr.setReceiptNumber  (r.getReceiptNumber());
-                    nr.setReceiptDate    (salesDate);  // sudah di-normalize
-                    nr.setServiceCharge  (r.getServiceChargeAsBigDecimal());
+                    Date dateWithTime = r.getReceiptDate();      // pastikan ini bukan java.sql.Date
+                    Timestamp ts = new Timestamp(dateWithTime.getTime());
+                    nr.setReceiptDate(ts);
+                    r.setServiceCharge  (r.getServiceChargeAsBigDecimal());
                     nr.setDpp            (r.getDppAsBigDecimal());
                     nr.setPpn            (r.getPpnAsBigDecimal());
                     nr.setAmount         (r.getAmountAsBigDecimal());
