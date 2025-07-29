@@ -86,7 +86,7 @@ public class PostTenantOmzetService {
                     Date dateWithTime = r.getReceiptDate();      // pastikan ini bukan java.sql.Date
                     Timestamp ts = new Timestamp(dateWithTime.getTime());
                     nr.setReceiptDate(ts);
-                    r.setServiceCharge  (r.getServiceChargeAsBigDecimal());
+                    nr.setServiceCharge  (r.getServiceChargeAsBigDecimal());
                     nr.setDpp            (r.getDppAsBigDecimal());
                     nr.setPpn            (r.getPpnAsBigDecimal());
                     nr.setAmount         (r.getAmountAsBigDecimal());
