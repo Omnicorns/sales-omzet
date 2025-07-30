@@ -1,6 +1,7 @@
 package com.sarinah.tenantsalesomzet.model.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sarinah.tenantsalesomzet.exception.BusinessException;
@@ -27,9 +28,16 @@ public class ReceiptItem {
     private Object dpp;
     private Object ppn;
     private Object serviceCharge;
-    private String paymentType;
+    private Integer paymentType;
     @JsonIgnore // Agar tidak di-serialize otomatis
     private Date receiptDate;
+
+
+    String[] patterns = {
+            "dd-MM-yyyy HH:mm:ss",
+            "dd-MM-yyyy HH:mm",
+            "dd-MM-yyyy"
+    };
 
     // Setter tetap sama, parsing fleksibel string → Date
     @JsonProperty("receiptDate")
@@ -38,23 +46,16 @@ public class ReceiptItem {
             this.receiptDate = null;
             return;
         }
-        String[] patterns = {
-                "dd-MM-yyyy HH:mm:ss",
-                "dd-MM-yyyy HH:mm",
-                "dd-MM-yyyy"
-        };
+
         for (String pattern : patterns) {
             try {
                 this.receiptDate = new SimpleDateFormat(pattern).parse(dateStr);
-                System.out.println("Parsed date: " + this.receiptDate);
                 return;
             } catch (ParseException e) {
 
             }
-        }     throw new BusinessException(ERROR_CODE_30000,"Format receipt date tidak valid");
+        }
     }
-
-
 
     // Getter return Date as is (untuk backend logic)
     public Date getReceiptDate() {

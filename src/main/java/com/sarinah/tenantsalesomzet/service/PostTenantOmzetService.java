@@ -2,12 +2,14 @@ package com.sarinah.tenantsalesomzet.service;
 
 import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.configuration.ApiContextHolder;
 import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.model.ApiContext;
+import com.sarinah.tenantsalesomzet.exception.BusinessException;
 import com.sarinah.tenantsalesomzet.model.dto.ReceiptItem;
 import com.sarinah.tenantsalesomzet.model.entity.TenantOmzet;
 import com.sarinah.tenantsalesomzet.model.entity.TenantOmzetReceipt;
 import com.sarinah.tenantsalesomzet.repository.TenantOmzetRepository;
 import com.sarinah.tenantsalesomzet.request.PostTenantOmzetRequest;
 import com.sarinah.tenantsalesomzet.response.ValidationResponse;
+import com.sarinah.tenantsalesomzet.util.Constant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import java.time.*;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.sarinah.tenantsalesomzet.util.Constant.ERROR_CODE_30000;
 
 
 @Log4j2
@@ -79,6 +83,12 @@ public class PostTenantOmzetService {
                         rc.getReceiptNumber().equals(r.getReceiptNumber())
                                 && rc.getAmount().compareTo(r.getAmountAsBigDecimal()) == 0
                 );
+                Constant.PAYMENT_STATUS status = Constant.PAYMENT_STATUS.valueOf(r.getPaymentType());
+
+                if (status == null){
+                    throw new BusinessException(ERROR_CODE_30000, "payment type tidak valid");
+                }
+
                 if (!exists) {
                     TenantOmzetReceipt nr = new TenantOmzetReceipt();
                     nr.setId             (UUID.randomUUID().toString());
@@ -90,7 +100,7 @@ public class PostTenantOmzetService {
                     nr.setDpp            (r.getDppAsBigDecimal());
                     nr.setPpn            (r.getPpnAsBigDecimal());
                     nr.setAmount         (r.getAmountAsBigDecimal());
-                    nr.setPaymentType    (r.getPaymentType());
+                    nr.setPaymentType    (status.getDesc());
                     nr.setTenantOmzet    (tenantOmzet);
                     nr.setUpdatedTime    (new Timestamp(System.currentTimeMillis()));
                     existing.add(nr);

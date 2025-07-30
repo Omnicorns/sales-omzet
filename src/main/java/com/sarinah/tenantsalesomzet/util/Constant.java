@@ -1,5 +1,8 @@
 package com.sarinah.tenantsalesomzet.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Constant {
     public static final String GRANT_TYPE_AUTHORIZATION_CODE = "AUTHORIZATION_CODE";
     public static final String GRANT_TYPE_REFRESH_TOKEN = "REFRESH_TOKEN";
@@ -34,4 +37,45 @@ public class Constant {
     public static final String REFRESHTOKEN_EXPIRY_TIME = "refreshtoken.expiry.time";
     public static final String GRANT_TYPE = "grant.type";
     public static final String CONFIG_IS_EMPTY = "CONFIG_IS_EMPTY";
+
+
+    public enum PAYMENT_STATUS {
+        CASH(1, "Cash"),
+        DEBIT_CARD(2, "Debit Card"),
+        CREDIT_CARD(3,"Credit Card"),
+        QRIS (4,"QRIS"),
+        TRANSFER (5, "Transfer"),
+        VOUCHER (6, "Voucher"),
+        EMONEY(7, "E-Money"),
+        UA (8, "UA"),
+        OTHER (9,"Other");
+
+
+        private final Integer value;
+        private final String desc;
+        private static final Map map = new HashMap<>();
+
+        PAYMENT_STATUS(Integer value, String desc) {
+            this.value = value;
+            this.desc = desc;
+        }
+
+        static {
+            for (PAYMENT_STATUS pageType : PAYMENT_STATUS.values()) {
+                map.put(pageType.value, pageType);
+            }
+        }
+
+        public static PAYMENT_STATUS valueOf(int pageType) {
+            return (PAYMENT_STATUS) map.get(pageType);
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+    }
 }
