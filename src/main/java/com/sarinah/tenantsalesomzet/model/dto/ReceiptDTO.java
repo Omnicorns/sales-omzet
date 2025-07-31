@@ -19,6 +19,6 @@ public class ReceiptDTO {
     private Object ppn;
     private Object serviceCharge;
     private String paymentType;
-    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss", timezone = "Asia/Jakarta")
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private Date receiptDate;
 }
