@@ -129,9 +129,7 @@ public class PostTenantOmzetService {
 
     }
 
-    private LocalDateTime toStartOfDay(LocalDateTime dt) {
-        return dt.toLocalDate().atStartOfDay();
-    }
+
 
 }
 

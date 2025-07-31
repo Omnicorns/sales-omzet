@@ -19,6 +19,8 @@ public class TenantOmzetDateRangeRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date endDate;
     @Builder.Default
+    private Boolean isOnlyTodayUpdate = false;
+    @Builder.Default
     private int page = 0;  // default halaman pertama
 
     @Builder.Default

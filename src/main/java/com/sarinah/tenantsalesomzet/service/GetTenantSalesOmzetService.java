@@ -22,25 +22,48 @@ public class GetTenantSalesOmzetService {
     private final TenantOmzetRepository tenantOmzetRepository;
 
     @Transactional
-    public Page<TenantOmzetResponse>  execute(Date startDate, Date endDate, Pageable pageable) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(startDate);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        Date normalizedStart = cal.getTime();
+    public Page<TenantOmzetResponse>  execute(Date startDate, Date endDate, boolean onlyTodayUpdate, Pageable pageable) {
+        Date todayStart = null;
+        Date tomorrowStart = null;
+        if (onlyTodayUpdate) {
+            Calendar todayCal = Calendar.getInstance();
+            todayCal.set(Calendar.HOUR_OF_DAY, 0);
+            todayCal.set(Calendar.MINUTE, 0);
+            todayCal.set(Calendar.SECOND, 0);
+            todayCal.set(Calendar.MILLISECOND, 0);
+            todayStart = todayCal.getTime();
 
-        // Normalisasi endDate ke awal hari berikutnya
-        cal.setTime(endDate);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        cal.add(Calendar.DAY_OF_MONTH, 1); // Supaya jam berapapun di endDate ikut
-        Date normalizedEnd = cal.getTime();
-        Page<TenantOmzet> page = tenantOmzetRepository
-                .findBySalesDateGreaterThanEqualAndSalesDateLessThan(normalizedStart, normalizedEnd, pageable);
+            todayCal.add(Calendar.DAY_OF_MONTH, 1);
+            tomorrowStart = todayCal.getTime();
+        }
+
+        Page<TenantOmzet> page;
+
+        if (onlyTodayUpdate) {
+            // Filter tambahan updateTime untuk hari ini
+            page = tenantOmzetRepository.findByUpdatedTimeBetween(todayStart, tomorrowStart, pageable);
+        } else {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(startDate);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            Date normalizedStart = cal.getTime();
+
+            // Normalisasi endDate ke awal hari berikutnya
+            cal.setTime(endDate);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            cal.add(Calendar.DAY_OF_MONTH, 1); // Supaya jam berapapun di endDate ikut
+            Date normalizedEnd = cal.getTime();
+            page = tenantOmzetRepository
+                    .findBySalesDateGreaterThanEqualAndSalesDateLessThan(
+                            normalizedStart, normalizedEnd, pageable
+                    );
+        }
 
         return page.map(this::mapToResponse);
     }

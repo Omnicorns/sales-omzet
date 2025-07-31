@@ -62,9 +62,8 @@ public class OmzetController {
             pageable = PageRequest.of(page, size);
         }
 
-
         Page<TenantOmzetResponse> result = getTenantSalesOmzetService
-                .execute(request.getStartDate(), request.getEndDate(), pageable);
+                .execute(request.getStartDate(), request.getEndDate(), request.getIsOnlyTodayUpdate(), pageable);
 
         return ResponseEntity.ok(result);
     }
