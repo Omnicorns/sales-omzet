@@ -6,6 +6,7 @@ import com.sarinah.tenantsalesomzet.request.PostTenantOmzetRequest;
 import com.sarinah.tenantsalesomzet.response.ValidationResponse;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -30,6 +31,8 @@ public class ValidateTenantOmzetService {
         if (receiptList == null || receiptList.isEmpty()) {
             throw new BusinessException(ERROR_CODE_30000, "Receipt list tidak boleh  kosong");
         }
+
+
         // (opsional) validasi tiap item:
         for (ReceiptItem r : receiptList) {
             if (r.getReceiptNumber() == null || r.getReceiptNumber().isBlank()) {
@@ -40,6 +43,15 @@ public class ValidateTenantOmzetService {
                 throw new BusinessException(ERROR_CODE_30000, "Tanggal Receipt tidak boleh kosong");
             }
 
+            BigDecimal dpp    = r.getDppAsBigDecimal();
+            BigDecimal ppn    = r.getPpnAsBigDecimal();
+            BigDecimal sc     = r.getServiceChargeAsBigDecimal();
+            BigDecimal sum = dpp.add(ppn).add(sc);
+
+            if (r.getAmountAsBigDecimal().compareTo(sum) < 0){
+                throw new BusinessException(ERROR_CODE_30000, "Request Amount tidak valid");
+            }
+
             LocalDate today = LocalDate.now();
             LocalDateTime endOfToday = today.atTime(LocalTime.MAX);
             Date endOfTodayDate = Date.from(endOfToday.atZone(ZoneId.systemDefault()).toInstant());
@@ -48,5 +60,7 @@ public class ValidateTenantOmzetService {
             }
         }
     }
+
+
 
 }

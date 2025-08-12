@@ -89,20 +89,39 @@ public class PostTenantOmzetService {
                     throw new BusinessException(ERROR_CODE_30000, "payment type tidak valid");
                 }
 
-                if (!exists) {
+                // cari receipt dengan nomor yang sama
+                Optional<TenantOmzetReceipt> sameNumber = existing.stream()
+                        .filter(rc -> rc.getReceiptNumber().equals(r.getReceiptNumber()))
+                        .findFirst();
+
+                Timestamp ts = new Timestamp(r.getReceiptDate().getTime());
+
+                if (sameNumber.isPresent()) {
+                    // sudah ada: kalau amount beda → replace field-fieldnya
+                    TenantOmzetReceipt rc = sameNumber.get();
+                    if (rc.getAmount() == null || rc.getAmount().compareTo(r.getAmountAsBigDecimal()) != 0) {
+                        rc.setServiceCharge (r.getServiceChargeAsBigDecimal());
+                        rc.setDpp           (r.getDppAsBigDecimal());
+                        rc.setPpn           (r.getPpnAsBigDecimal());
+                        rc.setAmount        (r.getAmountAsBigDecimal());
+                        rc.setPaymentType   (status.getDesc());
+                        rc.setReceiptDate   (ts);
+                        rc.setUpdatedTime   (new Timestamp(System.currentTimeMillis()));
+                    }
+                    // kalau amount sama → idempotent (tidak melakukan apa-apa)
+                } else {
+                    // belum ada: tambah baru
                     TenantOmzetReceipt nr = new TenantOmzetReceipt();
-                    nr.setId             (UUID.randomUUID().toString());
-                    nr.setReceiptNumber  (r.getReceiptNumber());
-                    Date dateWithTime = r.getReceiptDate();      // pastikan ini bukan java.sql.Date
-                    Timestamp ts = new Timestamp(dateWithTime.getTime());
-                    nr.setReceiptDate(ts);
-                    nr.setServiceCharge  (r.getServiceChargeAsBigDecimal());
-                    nr.setDpp            (r.getDppAsBigDecimal());
-                    nr.setPpn            (r.getPpnAsBigDecimal());
-                    nr.setAmount         (r.getAmountAsBigDecimal());
-                    nr.setPaymentType    (status.getDesc());
-                    nr.setTenantOmzet    (tenantOmzet);
-                    nr.setUpdatedTime    (new Timestamp(System.currentTimeMillis()));
+                    nr.setId            (UUID.randomUUID().toString());
+                    nr.setReceiptNumber (r.getReceiptNumber());
+                    nr.setReceiptDate   (ts);
+                    nr.setServiceCharge (r.getServiceChargeAsBigDecimal());
+                    nr.setDpp           (r.getDppAsBigDecimal());
+                    nr.setPpn           (r.getPpnAsBigDecimal());
+                    nr.setAmount        (r.getAmountAsBigDecimal());
+                    nr.setPaymentType   (status.getDesc());
+                    nr.setTenantOmzet   (tenantOmzet);
+                    nr.setUpdatedTime   (new Timestamp(System.currentTimeMillis()));
                     existing.add(nr);
                 }
 
