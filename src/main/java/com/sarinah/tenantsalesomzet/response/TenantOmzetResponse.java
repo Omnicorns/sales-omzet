@@ -2,6 +2,7 @@ package com.sarinah.tenantsalesomzet.response;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sarinah.tenantsalesomzet.model.dto.ReceiptDTO;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Data
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TenantOmzetResponse {
     private String tenantId;
     private String tenantName;
@@ -21,7 +23,7 @@ public class TenantOmzetResponse {
     private Date salesDate;
     private String day;
     private BigDecimal totalOmzet;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Asia/Jakarta")
     private Date updatedTime;
 
     private List<ReceiptDTO> receipts;
