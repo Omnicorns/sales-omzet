@@ -21,7 +21,7 @@ public class TenantOmzetResponse {
     private Date salesDate;
     private String day;
     private BigDecimal totalOmzet;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy",timezone = "Asia/Jakarta")
     private Date updatedTime;
 
     private List<ReceiptDTO> receipts;
