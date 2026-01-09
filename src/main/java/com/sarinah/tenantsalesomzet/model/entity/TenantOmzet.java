@@ -1,10 +1,7 @@
 package com.sarinah.tenantsalesomzet.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -12,10 +9,14 @@ import java.util.Date;
 import java.sql.Timestamp;
 import java.util.List;
 
-@Data
+
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = {"receipts"})  // ✅ Exclude collection
+@EqualsAndHashCode(exclude = {"receipts"})  // ✅ Exclude dari equals/hashCode juga
 @Entity
 @Table(name = "tenant_omzet")
 public class TenantOmzet {
@@ -39,7 +40,7 @@ public class TenantOmzet {
     @Column(name = "lot_location")
     private String lotLocation;
 
-    @Column(name="omzet",precision = 15, scale = 2)
+    @Column(name="omzet", precision = 15, scale = 2)
     private BigDecimal omzet;
 
     @Column(name = "created_time", nullable = false)
@@ -53,6 +54,9 @@ public class TenantOmzet {
     @Temporal(TemporalType.TIMESTAMP)
     private Timestamp updatedTime;
 
+    @Column(name = "channel_name")
+    private String channelName;
+
     @Column(name = "updated_by")
     private String updatedBy;
 
@@ -60,6 +64,4 @@ public class TenantOmzet {
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<TenantOmzetReceipt> receipts = new ArrayList<>();
-
-
 }

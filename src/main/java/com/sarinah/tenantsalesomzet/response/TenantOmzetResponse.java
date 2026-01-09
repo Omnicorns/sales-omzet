@@ -20,6 +20,7 @@ public class TenantOmzetResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Asia/Jakarta")
     private Date salesDate;
     private String day;
+    private String channel;
     private BigDecimal totalOmzet;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy",timezone = "Asia/Jakarta")
     private Date updatedTime;

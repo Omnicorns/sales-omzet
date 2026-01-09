@@ -1,7 +1,6 @@
 package com.sarinah.tenantsalesomzet.model.dto;
 
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sarinah.tenantsalesomzet.exception.BusinessException;
@@ -28,7 +27,8 @@ public class ReceiptItem {
     private Object dpp;
     private Object ppn;
     private Object serviceCharge;
-    private Integer paymentType;
+    private String paymentType;
+    private Integer channel;
     @JsonIgnore // Agar tidak di-serialize otomatis
     private Date receiptDate;
 

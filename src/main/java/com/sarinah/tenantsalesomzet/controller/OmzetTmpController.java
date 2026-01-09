@@ -6,6 +6,7 @@ import com.sarinah.tenantsalesomzet.request.TenantOmzetDateRangeRequest;
 import com.sarinah.tenantsalesomzet.response.TenantOmzetResponse;
 import com.sarinah.tenantsalesomzet.response.ValidationResponse;
 import com.sarinah.tenantsalesomzet.service.GetTenantSalesOmzetService;
+import com.sarinah.tenantsalesomzet.service.GetTenantSalesOmzetTmpService;
 import com.sarinah.tenantsalesomzet.service.PostTenantOmzetService;
 import com.sarinah.tenantsalesomzet.service.PostTenantOmzetTempService;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +20,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/tenant-sales/v1")
-public class OmzetController {
+@RequestMapping(value = "/tenant-sales/v2")
+public class OmzetTmpController {
 
-    private final PostTenantOmzetTempService postTenantOmzetService;
-    private final GetTenantSalesOmzetService getTenantSalesOmzetService;
+    private final PostTenantOmzetService postTenantOmzetService;
+    private final GetTenantSalesOmzetTmpService getTenantSalesOmzetService;
 
     @PostMapping(value = "/omzet")
     @TokenScope

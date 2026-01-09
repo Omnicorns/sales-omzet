@@ -4,9 +4,11 @@ import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.configuration.ApiC
 import com.sarinah.tenantsalesomzet.apisecurity.tokensecurity.model.ApiContext;
 import com.sarinah.tenantsalesomzet.exception.BusinessException;
 import com.sarinah.tenantsalesomzet.model.dto.ReceiptItem;
-import com.sarinah.tenantsalesomzet.model.entity.TenantOmzet;
-import com.sarinah.tenantsalesomzet.model.entity.TenantOmzetReceipt;
-import com.sarinah.tenantsalesomzet.repository.TenantOmzetRepository;
+
+import com.sarinah.tenantsalesomzet.model.entity.TenantOmzetReceiptTmp;
+import com.sarinah.tenantsalesomzet.model.entity.TenantOmzetTmp;
+
+import com.sarinah.tenantsalesomzet.repository.TenantOmzetTmpRepository;
 import com.sarinah.tenantsalesomzet.request.PostTenantOmzetRequest;
 import com.sarinah.tenantsalesomzet.response.ValidationResponse;
 import com.sarinah.tenantsalesomzet.util.Constant;
@@ -14,23 +16,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.sarinah.tenantsalesomzet.util.Constant.ERROR_CODE_30000;
 
-
 @Log4j2
 @RequiredArgsConstructor
 @Service
-public class PostTenantOmzetService {
-
-    private final TenantOmzetRepository omzetRepository;
+public class PostTenantOmzetTempService {
+    private final TenantOmzetTmpRepository omzetRepository;
     private final ValidateTenantOmzetService validateTenantOmzetService;
     private static final String SEP_REGEX =";";
     private static final String SEP_OUT = ","; // separator "|"
@@ -40,13 +42,13 @@ public class PostTenantOmzetService {
             ApiContext ctx    = ApiContextHolder.getContext();
             String    tenant  = ctx.getTenantName();
             String    brand   = ctx.getTenantBrand();
-            ZoneId    zone    = ZoneId.of("Asia/Jakarta"); // atau systemDefault()
+            ZoneId zone    = ZoneId.of("Asia/Jakarta"); // atau systemDefault()
 
             for (ReceiptItem r : input.getReceiptList()) {
                 // 1. Konversi receiptDate → LocalDate + LocalDateTime
                 Instant inst = r.getReceiptDate().toInstant();
                 LocalDateTime ldt  = LocalDateTime.ofInstant(inst, zone);
-                LocalDate     date = ldt.toLocalDate();
+                LocalDate date = ldt.toLocalDate();
 
                 // 2. Nama hari (ID)
                 String namaHari = ldt
@@ -57,10 +59,10 @@ public class PostTenantOmzetService {
                 Timestamp salesDate = Timestamp.valueOf(date.atStartOfDay());
 
                 // 4. Cari atau buat TenantOmzet untuk (tenant, salesDate)
-                TenantOmzet tenantOmzet = omzetRepository
+                TenantOmzetTmp tenantOmzet = omzetRepository
                         .findByTenantNameAndSalesDate(tenant, salesDate)
                         .orElseGet(() -> {
-                            TenantOmzet t = new TenantOmzet();
+                            TenantOmzetTmp t = new TenantOmzetTmp();
                             t.setTenantId     (UUID.randomUUID().toString());
                             t.setLotLocation  (input.getLotLocation());
                             t.setSalesDate    (salesDate);
@@ -69,7 +71,10 @@ public class PostTenantOmzetService {
                             t.setCreatedTime  (new Timestamp(System.currentTimeMillis()));
                             t.setTenantName   (tenant);
                             t.setBrandName    (brand);
-                            t.setReceipts     (new ArrayList<>());   // inisialisasi list
+                            t.setReceipts     (new ArrayList<>());
+                            t.setApprovalStatus(TenantOmzetTmp.ApprovalStatus.PENDING);
+                            t.setSubmittedBy("SYSTEM"); // atau ctx username
+                            t.setSubmittedTime(new Timestamp(System.currentTimeMillis()));// inisialisasi list
                             return t;
                         });
 
@@ -78,13 +83,12 @@ public class PostTenantOmzetService {
                 // 5. Update metadata parent
                 tenantOmzet.setLotLocation (input.getLotLocation());
                 tenantOmzet.setDay         (namaHari);
-                tenantOmzet.setChannelName (status.getDesc());
                 tenantOmzet.setUpdatedBy   ("SYSTEM");
                 tenantOmzet.setChannelName(String.valueOf(status));
                 tenantOmzet.setUpdatedTime (new Timestamp(System.currentTimeMillis()));
 
                 // 6. Append ReceiptItem ke TenantOmzet jika belum ada
-                List<TenantOmzetReceipt> existing = tenantOmzet.getReceipts();
+                List<TenantOmzetReceiptTmp> existing = tenantOmzet.getReceipts();
 
 
                 String paymentTypeDesc = normalizePaymentTypeDesc(r.getPaymentType());
@@ -95,7 +99,7 @@ public class PostTenantOmzetService {
                 }
 
                 // cari receipt dengan nomor yang sama
-                Optional<TenantOmzetReceipt> sameNumber = existing.stream()
+                Optional<TenantOmzetReceiptTmp> sameNumber = existing.stream()
                         .filter(rc -> rc.getReceiptNumber().equals(r.getReceiptNumber()))
                         .findFirst();
 
@@ -103,7 +107,7 @@ public class PostTenantOmzetService {
 
                 if (sameNumber.isPresent()) {
                     // sudah ada: kalau amount beda → replace field-fieldnya
-                    TenantOmzetReceipt rc = sameNumber.get();
+                    TenantOmzetReceiptTmp rc = sameNumber.get();
                     if (rc.getAmount() == null || rc.getAmount().compareTo(r.getAmountAsBigDecimal()) != 0) {
                         rc.setServiceCharge (r.getServiceChargeAsBigDecimal());
                         rc.setDpp           (r.getDppAsBigDecimal());
@@ -116,7 +120,7 @@ public class PostTenantOmzetService {
                     // kalau amount sama → idempotent (tidak melakukan apa-apa)
                 } else {
                     // belum ada: tambah baru
-                    TenantOmzetReceipt nr = new TenantOmzetReceipt();
+                    TenantOmzetReceiptTmp nr = new TenantOmzetReceiptTmp();
                     nr.setId            (UUID.randomUUID().toString());
                     nr.setReceiptNumber (r.getReceiptNumber());
                     nr.setReceiptDate   (ts);
@@ -133,8 +137,8 @@ public class PostTenantOmzetService {
                 // 7. Hitung total omzet unik dan set ke parent
                 BigDecimal totalOmzet = existing.stream()
                         .collect(Collectors.groupingBy(
-                                TenantOmzetReceipt::getReceiptNumber,
-                                Collectors.mapping(TenantOmzetReceipt::getAmount, Collectors.toSet())
+                                TenantOmzetReceiptTmp::getReceiptNumber,
+                                Collectors.mapping(TenantOmzetReceiptTmp::getAmount, Collectors.toSet())
                         ))
                         .values().stream()
                         .flatMap(Set::stream)
@@ -187,9 +191,4 @@ public class PostTenantOmzetService {
                 .distinct()
                 .collect(java.util.stream.Collectors.joining(SEP_OUT));
     }
-
-
-
 }
-
-

@@ -42,32 +42,76 @@ public class Constant {
     public enum PAYMENT_STATUS {
         CASH(1, "Cash"),
         DEBIT_CARD(2, "Debit Card"),
-        CREDIT_CARD(3,"Credit Card"),
-        QRIS (4,"QRIS"),
-        TRANSFER (5, "Transfer"),
-        VOUCHER (6, "Voucher"),
+        CREDIT_CARD(3, "Credit Card"),
+        QRIS(4, "QRIS"),
+        TRANSFER(5, "Transfer"),
+        VOUCHER(6, "Voucher"),
         EMONEY(7, "E-Money"),
-        UA (8, "UA"),
-        OTHER (9,"Other");
-
+        UA(8, "UA"),
+        OTHER(9, "Other");
 
         private final Integer value;
         private final String desc;
-        private static final Map map = new HashMap<>();
+
+        private static final Map<Integer, PAYMENT_STATUS> BY_VALUE;
+
+        static {
+            Map<Integer, PAYMENT_STATUS> m = new HashMap<>();
+            for (PAYMENT_STATUS p : values()) {
+                m.put(p.value, p);
+            }
+            BY_VALUE = java.util.Collections.unmodifiableMap(m);
+        }
 
         PAYMENT_STATUS(Integer value, String desc) {
             this.value = value;
             this.desc = desc;
         }
 
+        public Integer getValue() { return value; }
+        public String getDesc() { return desc; }
+
+        // ini tetap boleh
+        public static PAYMENT_STATUS fromValue(Integer v) {
+            return BY_VALUE.get(v);
+        }
+
+        // ini kunci biar bisa terima "1" dari request JSON
+        public static PAYMENT_STATUS fromCode(String code) {
+            if (code == null || code.isBlank()) return null;
+            try {
+                int v = Integer.parseInt(code.trim());
+                return fromValue(v);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+    }
+
+
+
+    public enum CHANNEL {
+        ONLINE(1, "Online"),
+        OFFLINE(2, "Offline");
+
+
+        private final Integer value;
+        private final String desc;
+        private static final Map map = new HashMap<>();
+
+        CHANNEL(Integer value, String desc) {
+            this.value = value;
+            this.desc = desc;
+        }
+
         static {
-            for (PAYMENT_STATUS pageType : PAYMENT_STATUS.values()) {
+            for (CHANNEL pageType : CHANNEL.values()) {
                 map.put(pageType.value, pageType);
             }
         }
 
-        public static PAYMENT_STATUS valueOf(int pageType) {
-            return (PAYMENT_STATUS) map.get(pageType);
+        public static CHANNEL valueOf(int pageType) {
+            return (CHANNEL) map.get(pageType);
         }
 
         public Integer getValue() {
@@ -78,4 +122,5 @@ public class Constant {
             return desc;
         }
     }
+
 }
