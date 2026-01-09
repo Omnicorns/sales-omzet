@@ -27,5 +27,6 @@ public class TenantOmzetDateRangeRequest {
     private int size = 500;// default 20 data per halaman
 
     private String sortDirection;
+    private String brandName;
 
 }

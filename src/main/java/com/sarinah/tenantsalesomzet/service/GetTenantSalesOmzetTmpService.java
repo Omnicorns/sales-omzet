@@ -1,8 +1,8 @@
 package com.sarinah.tenantsalesomzet.service;
 
 import com.sarinah.tenantsalesomzet.model.dto.ReceiptDTO;
-import com.sarinah.tenantsalesomzet.model.entity.TenantOmzet;
-import com.sarinah.tenantsalesomzet.repository.TenantOmzetRepository;
+import com.sarinah.tenantsalesomzet.model.entity.TenantOmzetTmp;
+import com.sarinah.tenantsalesomzet.repository.TenantOmzetTmpRepository;
 import com.sarinah.tenantsalesomzet.response.TenantOmzetResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +16,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class GetTenantSalesOmzetService {
-    private final TenantOmzetRepository tenantOmzetRepository;
+public class GetTenantSalesOmzetTmpService {
+    private final TenantOmzetTmpRepository tenantOmzetRepository;
+
 
     @Transactional
     public Page<TenantOmzetResponse> execute(Date startDate, Date endDate, boolean onlyTodayUpdate, String brandName, Pageable pageable) {
@@ -36,7 +37,7 @@ public class GetTenantSalesOmzetService {
             tomorrowStart = todayCal.getTime();
         }
 
-        Page<TenantOmzet> page;
+        Page<TenantOmzetTmp> page;
 
         if (onlyTodayUpdate) {
             // Filter tambahan updateTime untuk hari ini + brandName
@@ -84,7 +85,7 @@ public class GetTenantSalesOmzetService {
 
 
 
-    private TenantOmzetResponse mapToResponse(TenantOmzet entity) {
+    private TenantOmzetResponse mapToResponse(TenantOmzetTmp entity) {
         return TenantOmzetResponse.builder()
                 .tenantId(entity.getTenantId())
                 .tenantName(entity.getTenantName())
@@ -96,15 +97,15 @@ public class GetTenantSalesOmzetService {
                 .totalOmzet(entity.getOmzet())
                 .updatedTime(entity.getUpdatedTime())
                 .receipts(entity.getReceipts().stream().
-                         map(r -> ReceiptDTO.builder()
-                        .receiptNumber(r.getReceiptNumber())
-                        .amount(r.getAmount())
-                        .ppn(r.getPpn())
-                        .dpp(r.getDpp())
-                        .serviceCharge(r.getServiceCharge())
-                        .paymentType(r.getPaymentType())
-                        .receiptDate(r.getReceiptDate())
-                        .build())
+                        map(r -> ReceiptDTO.builder()
+                                .receiptNumber(r.getReceiptNumber())
+                                .amount(r.getAmount())
+                                .ppn(r.getPpn())
+                                .dpp(r.getDpp())
+                                .serviceCharge(r.getServiceCharge())
+                                .paymentType(r.getPaymentType())
+                                .receiptDate(r.getReceiptDate())
+                                .build())
                         .collect(Collectors.toList()))
                 .build();
     }

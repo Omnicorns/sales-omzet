@@ -13,7 +13,6 @@ import java.util.List;
 
 @Data
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TenantOmzetResponse {
     private String tenantId;
     private String tenantName;
@@ -22,8 +21,9 @@ public class TenantOmzetResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Asia/Jakarta")
     private Date salesDate;
     private String day;
+    private String channel;
     private BigDecimal totalOmzet;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Asia/Jakarta")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy",timezone = "Asia/Jakarta")
     private Date updatedTime;
 
     private List<ReceiptDTO> receipts;
