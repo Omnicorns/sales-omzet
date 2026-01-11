@@ -136,6 +136,39 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
+        .btn-export {
+            padding: 10px 30px;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            height: 42px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-export:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-export:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-export:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
         .stats-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -169,6 +202,18 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-header h2 {
+            color: #333;
+            font-size: 18px;
         }
 
         table {
@@ -367,6 +412,12 @@
                 flex-direction: column;
                 gap: 10px;
             }
+
+            .table-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -415,6 +466,14 @@
                 <label for="onlyToday">Hanya Update Hari Ini</label>
             </div>
             <button type="submit" class="btn-filter">🔍 Filter</button>
+
+            <!-- Tombol Export Excel -->
+            <button type="button"
+                    class="btn-export"
+                    onclick="exportToExcel()"
+                    th:disabled="${tenants == null or tenants.empty}">
+                📊 Export Excel
+            </button>
         </form>
     </div>
 
@@ -445,6 +504,10 @@
 
     <!-- Table -->
     <div class="table-container">
+        <div class="table-header" th:if="${tenants != null and !tenants.empty}">
+            <h2>📋 Data Sales Omzet</h2>
+        </div>
+
         <table th:if="${tenants != null and !tenants.empty}">
             <thead>
             <tr>
@@ -588,6 +651,61 @@
         } else {
             receiptsRow.style.display = 'table-row';
         }
+    }
+
+    function exportToExcel() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const onlyToday = document.getElementById('onlyToday').checked;
+
+        if (!startDate || !endDate) {
+            alert('⚠️ Silakan pilih tanggal mulai dan tanggal akhir terlebih dahulu!');
+            return;
+        }
+
+        // Build URL with parameters
+        let url = '/dev1/dashboard/export/excel?';
+        url += 'startDate=' + encodeURIComponent(startDate);
+        url += '&endDate=' + encodeURIComponent(endDate);
+        url += '&onlyToday=' + onlyToday;
+
+        // Show loading
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Mengunduh...';
+        btn.disabled = true;
+
+        // Trigger download
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Export gagal');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Sales_Omzet_${startDate}_to_${endDate}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                // Reset button
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Gagal mengunduh file Excel. Silakan coba lagi.');
+
+                // Reset button
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
     }
 </script>
 </body>
