@@ -33,4 +33,23 @@ public interface TenantOmzetTmpRepository extends JpaRepository<TenantOmzetTmp,S
     Page<TenantOmzetTmp> findByApprovalStatusOrderBySubmittedTimeAsc(
             TenantOmzetTmp.ApprovalStatus status, Pageable pageable
     );
+
+
+    @Query("""
+        select distinct t
+        from TenantOmzetTmp t
+        left join t.receipts r
+        where
+              t.approvalStatus = 'PENDING'
+           or (
+                t.approvalStatus = 'APPROVED'
+                and (
+                        t.approvedTime is null
+                     or r.updatedTime is null
+                     or r.updatedTime > t.approvedTime
+                )
+           )
+        order by t.submittedTime asc
+    """)
+    Page<TenantOmzetTmp> findNeedApproval(Pageable pageable);
 }

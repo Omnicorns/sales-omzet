@@ -11,13 +11,13 @@ public class TenantOmzetApproveScheduler {
 
     // === CONFIG TANPA YML ===
     private static final boolean ENABLED = true;
-    private static final String  CRON_EXPR = "0 */1 * * * *"; // tiap 5 menit (Spring cron 6 field)
+    private static final String  CRON_EXPR = "0 0 3,6,9,12 * * *";  // tiap 5 menit (Spring cron 6 field)
     private static final int     BATCH_SIZE = 200;
 
-//    //@Scheduled(cron = CRON_EXPR, zone = "Asia/Jakarta")
-//    public void autoApprove() {
-//        if (!ENABLED) return;
-//
-//        batchService.approvePendingBatch(BATCH_SIZE, "CRON");
-//    }
+    @Scheduled(cron = CRON_EXPR, zone = "Asia/Jakarta")
+    public void autoApprove() {
+        if (!ENABLED) return;
+
+        batchService.approvePendingBatch(BATCH_SIZE, "CRON");
+    }
 }

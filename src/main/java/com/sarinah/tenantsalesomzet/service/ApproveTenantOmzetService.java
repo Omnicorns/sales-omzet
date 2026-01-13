@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ApproveTenantOmzetService {
+
     private final TenantOmzetTmpRepository tmpRepo;
     private final TenantOmzetRepository mainRepo;
 
@@ -33,16 +34,42 @@ public class ApproveTenantOmzetService {
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
-        // 1. Load TMP
+        // 1. Load TMP (lock row)
         TenantOmzetTmp tmp = tmpRepo.findByIdForUpdate(tmpId)
                 .orElseThrow(() -> new BusinessException("30000", "Data tmp tidak ditemukan"));
-        log.info("TMP loaded: status={}, receipts={}",
-                tmp.getApprovalStatus(), tmp.getReceipts().size());
 
-        // 2. Idempotent check
-        if (tmp.getApprovalStatus() == TenantOmzetTmp.ApprovalStatus.APPROVED) {
-            log.info("TMP already approved, skipping");
-            return;
+        int tmpReceiptSize = (tmp.getReceipts() == null) ? 0 : tmp.getReceipts().size();
+        log.info("TMP loaded: status={}, receipts={}", tmp.getApprovalStatus(), tmpReceiptSize);
+
+        // 2. Re-approval aware idempotent check
+        TenantOmzetTmp.ApprovalStatus status = tmp.getApprovalStatus();
+        boolean alreadyApproved = status == TenantOmzetTmp.ApprovalStatus.APPROVED;
+
+        if (alreadyApproved) {
+            Timestamp approvedTime = tmp.getApprovedTime();
+
+            boolean hasChangeAfterApprove;
+            if (approvedTime == null) {
+                // data lama / edge case -> lebih aman proses ulang
+                hasChangeAfterApprove = true;
+            } else if (tmp.getReceipts() == null || tmp.getReceipts().isEmpty()) {
+                hasChangeAfterApprove = false;
+            } else {
+                hasChangeAfterApprove = tmp.getReceipts().stream().anyMatch(r -> {
+                    Timestamp ut = r.getUpdatedTime();
+                    // kalau updatedTime null, treat as changed biar nggak miss data
+                    return ut == null || ut.after(approvedTime);
+                });
+            }
+
+            if (!hasChangeAfterApprove) {
+                log.info("TMP already approved and no receipt updated after approvedTime={}, skipping", approvedTime);
+                return;
+            }
+
+            log.info("TMP already approved but has receipt changes after approvedTime -> re-approving");
+            // Treat as re-approval: turunkan status in-memory agar lolos validasi
+            tmp.setApprovalStatus(TenantOmzetTmp.ApprovalStatus.PENDING);
         }
 
         // 3. Status validation
@@ -72,8 +99,8 @@ public class ApproveTenantOmzetService {
                     return m;
                 });
 
-        log.info("Main entity: tenantId={}, existing receipts={}",
-                main.getTenantId(), main.getReceipts().size());
+        int mainReceiptSize = (main.getReceipts() == null) ? 0 : main.getReceipts().size();
+        log.info("Main entity: tenantId={}, existing receipts={}", main.getTenantId(), mainReceiptSize);
 
         // 5. Update parent fields
         main.setLotLocation(tmp.getLotLocation());
@@ -84,47 +111,62 @@ public class ApproveTenantOmzetService {
         main.setUpdatedBy(approvedBy);
         main.setUpdatedTime(now);
 
+        // Ensure receipts list not null
+        if (main.getReceipts() == null) main.setReceipts(new ArrayList<>());
+
         // 6. Merge receipts
         Map<String, TenantOmzetReceipt> mainReceiptMap = main.getReceipts().stream()
+                .filter(r -> r.getReceiptNumber() != null)
                 .collect(Collectors.toMap(
                         TenantOmzetReceipt::getReceiptNumber,
                         Function.identity(),
                         (existing, replacement) -> existing
                 ));
 
-        log.info("Processing {} TMP receipts", tmp.getReceipts().size());
+        log.info("Processing {} TMP receipts", tmpReceiptSize);
 
         int newCount = 0, updateCount = 0;
-        for (TenantOmzetReceiptTmp tmpReceipt : tmp.getReceipts()) {
-            TenantOmzetReceipt mainReceipt = mainReceiptMap.get(tmpReceipt.getReceiptNumber());
+        if (tmp.getReceipts() != null) {
+            for (TenantOmzetReceiptTmp tmpReceipt : tmp.getReceipts()) {
+                if (tmpReceipt == null) continue;
 
-            if (mainReceipt == null) {
-                // Create new
-                mainReceipt = new TenantOmzetReceipt();
-                mainReceipt.setId(UUID.randomUUID().toString());
-                mainReceipt.setReceiptNumber(tmpReceipt.getReceiptNumber());
-                mainReceipt.setTenantOmzet(main);  // ✅ Set parent
-                mainReceipt.setCreatedTime(now);
-                main.getReceipts().add(mainReceipt);  // ✅ Add to collection
-                mainReceiptMap.put(mainReceipt.getReceiptNumber(), mainReceipt);
+                String receiptNumber = tmpReceipt.getReceiptNumber();
+                if (receiptNumber == null || receiptNumber.isBlank()) {
+                    log.warn("Skipping TMP receipt with empty receiptNumber (tmpId={})", tmpId);
+                    continue;
+                }
 
-                log.info("Creating new receipt: id={}, receiptNumber={}",
-                        mainReceipt.getId(), mainReceipt.getReceiptNumber());
-                newCount++;
-            } else {
-                log.info("Updating existing receipt: {}", mainReceipt.getReceiptNumber());
-                updateCount++;
+                TenantOmzetReceipt mainReceipt = mainReceiptMap.get(receiptNumber);
+
+                if (mainReceipt == null) {
+                    // Create new
+                    mainReceipt = new TenantOmzetReceipt();
+                    mainReceipt.setId(UUID.randomUUID().toString());
+                    mainReceipt.setReceiptNumber(receiptNumber);
+                    mainReceipt.setTenantOmzet(main);     // ✅ Set parent
+                    mainReceipt.setCreatedTime(now);
+
+                    main.getReceipts().add(mainReceipt); // ✅ Add to collection
+                    mainReceiptMap.put(receiptNumber, mainReceipt);
+
+                    log.info("Creating new receipt: id={}, receiptNumber={}",
+                            mainReceipt.getId(), mainReceipt.getReceiptNumber());
+                    newCount++;
+                } else {
+                    log.info("Updating existing receipt: {}", mainReceipt.getReceiptNumber());
+                    updateCount++;
+                }
+
+                // Update fields
+                mainReceipt.setReceiptDate(tmpReceipt.getReceiptDate());
+                mainReceipt.setServiceCharge(tmpReceipt.getServiceCharge());
+                mainReceipt.setDpp(tmpReceipt.getDpp());
+                mainReceipt.setPpn(tmpReceipt.getPpn());
+                mainReceipt.setAmount(tmpReceipt.getAmount());
+                mainReceipt.setPaymentType(tmpReceipt.getPaymentType());
+                mainReceipt.setUpdatedBy(approvedBy);
+                mainReceipt.setUpdatedTime(now);
             }
-
-            // Update fields
-            mainReceipt.setReceiptDate(tmpReceipt.getReceiptDate());
-            mainReceipt.setServiceCharge(tmpReceipt.getServiceCharge());
-            mainReceipt.setDpp(tmpReceipt.getDpp());
-            mainReceipt.setPpn(tmpReceipt.getPpn());
-            mainReceipt.setAmount(tmpReceipt.getAmount());
-            mainReceipt.setPaymentType(tmpReceipt.getPaymentType());
-            mainReceipt.setUpdatedBy(approvedBy);
-            mainReceipt.setUpdatedTime(now);
         }
 
         log.info("Receipt processing: new={}, updated={}, total={}",
@@ -135,14 +177,14 @@ public class ApproveTenantOmzetService {
             log.info("Saving main entity...");
             TenantOmzet saved = mainRepo.save(main);
             mainRepo.flush();  // ✅ Force flush untuk debug
-            log.info("Main entity saved: tenantId={}, receipts={}",
-                    saved.getTenantId(), saved.getReceipts().size());
+            int savedReceiptSize = (saved.getReceipts() == null) ? 0 : saved.getReceipts().size();
+            log.info("Main entity saved: tenantId={}, receipts={}", saved.getTenantId(), savedReceiptSize);
         } catch (Exception e) {
             log.error("ERROR saving main entity: ", e);
             throw e;
         }
 
-        // 8. Update TMP status
+        // 8. Update TMP status (APPROVED)
         try {
             log.info("Updating TMP status to APPROVED...");
             tmp.setApprovalStatus(TenantOmzetTmp.ApprovalStatus.APPROVED);
