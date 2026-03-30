@@ -3,7 +3,6 @@ package com.sarinah.tenantsalesomzet.controller;
 import com.sarinah.tenantsalesomzet.model.dto.TenantOmzetDTO;
 import com.sarinah.tenantsalesomzet.model.dto.TenantOmzetReceiptDTO;
 import com.sarinah.tenantsalesomzet.response.TenantOmzetResponse;
-import com.sarinah.tenantsalesomzet.service.GetTenantSalesOmzetService;
 import com.sarinah.tenantsalesomzet.service.GetTenantSalesOmzetTmpService;
 import com.sarinah.tenantsalesomzet.util.ExcelExportService;
 import jakarta.servlet.http.HttpSession;
@@ -13,7 +12,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.format.annotation.DateTimeFormat;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,7 +36,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/dashboard")
+@RequestMapping("/tenant-sales/dashboard")
 @RequiredArgsConstructor
 @Slf4j
 public class DashboardController {
