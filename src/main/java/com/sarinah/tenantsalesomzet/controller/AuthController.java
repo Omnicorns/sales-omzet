@@ -18,7 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/auth")
+@RequestMapping("/tenant-sales/auth")
 public class AuthController {
     private final PostLoginService loginService;
 
