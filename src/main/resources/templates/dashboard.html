@@ -431,7 +431,7 @@
     </div>
     <div class="user-info">
         <span>👤 <strong th:text="${username}">User</strong></span>
-        <a href="#" th:href="@{/auth/logout}" class="btn-logout">🚪 Logout</a>
+        <a href="#" th:href="@{/tenant-sales/auth/logout}" class="btn-logout">🚪 Logout</a>
     </div>
 </div>
 
@@ -664,7 +664,7 @@
         }
 
         // Build URL with parameters
-        let url = '/dev1/dashboard/export/excel?';
+        let url = '/tenant-sales/dashboard/export/excel?';
         url += 'startDate=' + encodeURIComponent(startDate);
         url += '&endDate=' + encodeURIComponent(endDate);
         url += '&onlyToday=' + onlyToday;

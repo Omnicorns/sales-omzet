@@ -44,7 +44,7 @@ public class AuthController {
             session.setAttribute("brandName", response.getTenantBrand());
 
             redirectAttributes.addFlashAttribute("message", "Login berhasil!");
-            return "redirect:/dashboard";
+            return "redirect:/tenant-sales/dashboard";
 
         } catch (BusinessException e) {
             model.addAttribute("error", e.getMessage());
@@ -59,6 +59,6 @@ public class AuthController {
     public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
         session.invalidate();
         redirectAttributes.addFlashAttribute("message", "Anda telah berhasil logout");
-        return "redirect:/auth/login";
+        return "redirect:/tenant-sales/auth/login";
     }
 }

@@ -61,7 +61,7 @@ public class DashboardController {
         String brandName = (String) session.getAttribute("brandName");
 
         if (username == null) {
-            return "redirect:/auth/login";
+            return "redirect:/tenant-sales/auth/login";
         }
 
         if (startDate == null) {
