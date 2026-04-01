@@ -68,7 +68,7 @@ public class DashboardController {
         if (username == null) {
             username = cookieUsername != null ? URLDecoder.decode(cookieUsername, StandardCharsets.UTF_8) : null;
             brandName = cookieBrand != null ? URLDecoder.decode(cookieBrand, StandardCharsets.UTF_8) : null;
-           
+
             // Restore ke session
             if (username != null) {
                 session.setAttribute("username", username);
@@ -134,10 +134,18 @@ public class DashboardController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             @RequestParam(defaultValue = "false") boolean onlyToday,
+            @CookieValue(value = "tenant_username", required = false) String cookieUsername,
+            @CookieValue(value = "tenant_brand", required = false) String cookieBrand,
             HttpSession session) {
 
         String username = (String) session.getAttribute("username");
         String brandName = (String) session.getAttribute("brandName");
+
+        if (username == null) {
+            username = cookieUsername != null ? URLDecoder.decode(cookieUsername, StandardCharsets.UTF_8) : null;
+            brandName = cookieBrand != null ? URLDecoder.decode(cookieBrand, StandardCharsets.UTF_8) : null;
+        }
+
 
         if (username == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
