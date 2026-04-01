@@ -7,6 +7,8 @@ import com.sarinah.tenantsalesomzet.response.PostLoginResponse;
 import com.sarinah.tenantsalesomzet.service.PostLoginService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,9 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
+
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/tenant-sales/auth")
+@Slf4j
 public class AuthController {
     private final PostLoginService loginService;
 
@@ -42,6 +47,8 @@ public class AuthController {
             session.setAttribute("username", response.getUsername());
             session.setAttribute("tenantName", response.getTenantNama());
             session.setAttribute("brandName", response.getTenantBrand());
+
+           log.info ("Session after set - username: {}", session.getAttribute("username"));
 
             redirectAttributes.addFlashAttribute("message", "Login berhasil!");
             return "redirect:/tenant-sales/dashboard";

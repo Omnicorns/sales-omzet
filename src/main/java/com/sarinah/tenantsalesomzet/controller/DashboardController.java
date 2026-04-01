@@ -60,7 +60,9 @@ public class DashboardController {
         String username = (String) session.getAttribute("username");
         String brandName = (String) session.getAttribute("brandName");
 
-       
+        if (username == null) {
+            return "redirect:/tenant-sales/auth/login";
+        }
 
         if (startDate == null) {
             startDate = LocalDate.now().minusMonths(1).toString();
