@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -64,8 +66,9 @@ public class DashboardController {
         String brandName = (String) session.getAttribute("brandName");
 
         if (username == null) {
-            username = cookieUsername;
-            brandName = cookieBrand;
+            username = cookieUsername != null ? URLDecoder.decode(cookieUsername, StandardCharsets.UTF_8) : null;
+            brandName = cookieBrand != null ? URLDecoder.decode(cookieBrand, StandardCharsets.UTF_8) : null;
+           
             // Restore ke session
             if (username != null) {
                 session.setAttribute("username", username);

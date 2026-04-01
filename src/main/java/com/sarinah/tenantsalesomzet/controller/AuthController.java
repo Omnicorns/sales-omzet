@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 
 @Controller
@@ -51,18 +52,19 @@ public class AuthController {
             session.setAttribute("tenantName", response.getTenantNama());
             session.setAttribute("brandName", response.getTenantBrand());
 
-            Cookie userCookie = new Cookie("tenant_username", response.getUsername());
+            Cookie userCookie = new Cookie("tenant_username",
+                    URLEncoder.encode(response.getUsername(), StandardCharsets.UTF_8));
             userCookie.setPath("/tenant-sales/");
-            userCookie.setMaxAge(60 * 30); // 30 menit
+            userCookie.setMaxAge(60 * 30);
             userCookie.setHttpOnly(true);
             httpResponse.addCookie(userCookie);
 
-            Cookie brandCookie = new Cookie("tenant_brand", response.getTenantBrand());
+            Cookie brandCookie = new Cookie("tenant_brand",
+                    URLEncoder.encode(response.getTenantBrand(), StandardCharsets.UTF_8));
             brandCookie.setPath("/tenant-sales/");
             brandCookie.setMaxAge(60 * 30);
             brandCookie.setHttpOnly(true);
             httpResponse.addCookie(brandCookie);
-
             redirectAttributes.addFlashAttribute("message", "Login berhasil!");
             return "redirect:/tenant-sales/dashboard";
 
