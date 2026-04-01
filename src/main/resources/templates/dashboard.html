@@ -608,7 +608,7 @@
             <div class="pagination-controls">
                 <!-- Previous Button -->
                 <a th:if="${currentPage > 0}"
-                   th:href="@{/dashboard(startDate=${startDate}, endDate=${endDate}, onlyToday=${onlyToday}, page=${currentPage - 1}, size=10)}"
+                   th:href="@{/tenant-sales/dashboard(startDate=${startDate}, endDate=${endDate}, onlyToday=${onlyToday}, page=${currentPage - 1}, size=10)}"
                    class="page-link">
                     ← Previous
                 </a>
@@ -617,7 +617,7 @@
                 <!-- Page Numbers -->
                 <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
                     <a th:if="${i < 5 or (i >= currentPage - 2 and i <= currentPage + 2) or i >= totalPages - 2}"
-                       th:href="@{/dashboard(startDate=${startDate}, endDate=${endDate}, onlyToday=${onlyToday}, page=${i}, size=10)}"
+                       th:href="@{/tenant-sales/dashboard(startDate=${startDate}, endDate=${endDate}, onlyToday=${onlyToday}, page=${i}, size=10)}"
                        th:text="${i + 1}"
                        th:classappend="${i == currentPage} ? 'active' : ''"
                        class="page-link">
@@ -627,7 +627,7 @@
 
                 <!-- Next Button -->
                 <a th:if="${currentPage < totalPages - 1}"
-                   th:href="@{/dashboard(startDate=${startDate}, endDate=${endDate}, onlyToday=${onlyToday}, page=${currentPage + 1}, size=10)}"
+                   th:href="@{/tenant-sales/dashboard(startDate=${startDate}, endDate=${endDate}, onlyToday=${onlyToday}, page=${currentPage + 1}, size=10)}"
                    class="page-link">
                     Next →
                 </a>
