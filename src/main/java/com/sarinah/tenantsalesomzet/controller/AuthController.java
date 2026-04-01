@@ -5,6 +5,8 @@ import com.sarinah.tenantsalesomzet.exception.BusinessException;
 import com.sarinah.tenantsalesomzet.request.LoginRequest;
 import com.sarinah.tenantsalesomzet.response.PostLoginResponse;
 import com.sarinah.tenantsalesomzet.service.PostLoginService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
@@ -37,6 +39,7 @@ public class AuthController {
     public String login(@ModelAttribute LoginRequest request,
                         Model model,
                         HttpSession session,
+                        HttpServletResponse httpResponse,
                         RedirectAttributes redirectAttributes) {
         try {
             // Call service untuk login
@@ -48,7 +51,17 @@ public class AuthController {
             session.setAttribute("tenantName", response.getTenantNama());
             session.setAttribute("brandName", response.getTenantBrand());
 
-           log.info ("Session after set - username: {}", session.getAttribute("username"));
+            Cookie userCookie = new Cookie("tenant_username", response.getUsername());
+            userCookie.setPath("/tenant-sales/");
+            userCookie.setMaxAge(60 * 30); // 30 menit
+            userCookie.setHttpOnly(true);
+            httpResponse.addCookie(userCookie);
+
+            Cookie brandCookie = new Cookie("tenant_brand", response.getTenantBrand());
+            brandCookie.setPath("/tenant-sales/");
+            brandCookie.setMaxAge(60 * 30);
+            brandCookie.setHttpOnly(true);
+            httpResponse.addCookie(brandCookie);
 
             redirectAttributes.addFlashAttribute("message", "Login berhasil!");
             return "redirect:/tenant-sales/dashboard";
@@ -63,7 +76,16 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
+    public String logout(HttpSession session, RedirectAttributes redirectAttributes,HttpServletResponse httpResponse) {
+        Cookie userCookie = new Cookie("tenant_username", null);
+        userCookie.setPath("/tenant-sales/");
+        userCookie.setMaxAge(0);
+        httpResponse.addCookie(userCookie);
+
+        Cookie brandCookie = new Cookie("tenant_brand", null);
+        brandCookie.setPath("/tenant-sales/");
+        brandCookie.setMaxAge(0);
+        httpResponse.addCookie(brandCookie);
         session.invalidate();
         redirectAttributes.addFlashAttribute("message", "Anda telah berhasil logout");
         return "redirect:/tenant-sales/auth/login";

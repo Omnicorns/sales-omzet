@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -55,11 +56,22 @@ public class DashboardController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "false") boolean onlyToday,
             HttpSession session,
+            @CookieValue(value = "tenant_username", required = false) String cookieUsername,
+            @CookieValue(value = "tenant_brand", required = false) String cookieBrand,
             Model model) {
 
         String username = (String) session.getAttribute("username");
         String brandName = (String) session.getAttribute("brandName");
 
+        if (username == null) {
+            username = cookieUsername;
+            brandName = cookieBrand;
+            // Restore ke session
+            if (username != null) {
+                session.setAttribute("username", username);
+                session.setAttribute("brandName", brandName);
+            }
+        }
         if (username == null) {
             return "redirect:/tenant-sales/auth/login";
         }
