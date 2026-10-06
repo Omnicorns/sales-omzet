@@ -17,6 +17,7 @@ import java.util.Optional;
 
 public interface TenantOmzetTmpRepository extends JpaRepository<TenantOmzetTmp,String> {
     Page<TenantOmzetTmp> findBySalesDateGreaterThanEqualAndSalesDateLessThan(Date startDate, Date endDate, Pageable pageable);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<TenantOmzetTmp> findByTenantNameAndSalesDate(String name, Date salesDate);
     Page<TenantOmzetTmp> findByUpdatedTimeBetween(Date start, Date end, Pageable pageable);
     Page<TenantOmzetTmp> findBySalesDateGreaterThanEqualAndSalesDateLessThanAndBrandName(

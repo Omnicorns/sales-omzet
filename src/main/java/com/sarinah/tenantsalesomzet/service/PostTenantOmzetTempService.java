@@ -15,6 +15,7 @@ import com.sarinah.tenantsalesomzet.util.Constant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -37,6 +38,7 @@ public class PostTenantOmzetTempService {
     private static final String SEP_REGEX =";";
     private static final String SEP_OUT = ","; // separator "|"
 
+    @Transactional
     public ValidationResponse execute(PostTenantOmzetRequest input) {
         if (validateTenantOmzetService.execute(input).getResult()) {
             ApiContext ctx    = ApiContextHolder.getContext();
