@@ -22,7 +22,7 @@ public class ApiLoggingFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        ContentCachingRequestWrapper wrappedReq = new ContentCachingRequestWrapper(request);
+        ContentCachingRequestWrapper wrappedReq = new ContentCachingRequestWrapper(request, 64 * 1024);
         ContentCachingResponseWrapper wrappedRes = new ContentCachingResponseWrapper(response);
 
         // 2) Generate atau baca traceId untuk korelasi log

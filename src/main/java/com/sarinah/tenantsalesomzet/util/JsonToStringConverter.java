@@ -1,16 +1,18 @@
 package com.sarinah.tenantsalesomzet.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 public class JsonToStringConverter {
+    private static final JsonMapper MAPPER = JsonMapper.builder().build();
+
     private JsonToStringConverter() {}
 
-    public static String convertJsonToString(Object data) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(data);
+    public static String convertJsonToString(Object data) throws JacksonException {
+        return MAPPER.writeValueAsString(data);
     }
 
     public static Object convertJsonToObject(Object data) {
-        return new ObjectMapper().convertValue(data, Object.class);
+        return MAPPER.convertValue(data, Object.class);
     }
 }
