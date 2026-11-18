@@ -32,7 +32,7 @@ public class  PostGetTokenService {
                 .scopes(tokenView.getScopes().split(","))
                 .appId(tokenView.getAppId())
                 .accessToken(tokenView.getAccessToken())
-                .accessTokenExpiryTime(tokenView.getAccessTokenExpiryTime())
+                .accessTokenExpiryTime(tokenView.accessTokenExpiryTimestamp())
                 .build();
     }
 
